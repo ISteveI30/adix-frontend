@@ -10,8 +10,8 @@ RUN npm install -g pnpm
 # Copia los archivos de configuración del proyecto
 COPY package.json pnpm-lock.yaml* ./
 
-# Instala las dependencias del proyecto
-RUN pnpm fetch && pnpm install --offline
+# Instala las dependencias del proyecto con --strict-peer-dependencies=false
+RUN pnpm install --strict-peer-dependencies=false
 
 # Copia el resto de los archivos del proyecto
 COPY . .
