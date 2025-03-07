@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { JSX, useState } from "react";
 
 // const TeacherForm = dynamic(() => import("./forms/TeacherForm"), {
 //   loading: () => <h1>Loading...</h1>,
