@@ -2,6 +2,7 @@
 
 import { RadialBarChart, RadialBar, Legend, ResponsiveContainer } from 'recharts';
 import WraperCards from './WraperCards';
+import Image from 'next/image';
 
 const data = [
   {
@@ -45,7 +46,7 @@ const CountChart = () => (
             />
           </RadialBarChart>
         </ResponsiveContainer>
-        <img
+        <Image
           src={"/maleFemale.png"}
           alt='Alumnos'
           width={50}

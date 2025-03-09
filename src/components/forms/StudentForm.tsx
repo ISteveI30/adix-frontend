@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import InputField from "../customs/InputField";
+import Image from "next/image";
 
 const schema = z.object({
   username: z
@@ -18,13 +19,13 @@ const schema = z.object({
   lastName: z.string().min(1, { message: "Last name is required!" }),
   phone: z.string().min(1, { message: "Phone is required!" }),
   address: z.string().min(1, { message: "Address is required!" }),
-  bloodType: z.string().min(1, { message: "Blood Type is required!" }),
   birthday: z.date({ message: "Birthday is required!" }),
   sex: z.enum(["male", "female"], { message: "Sex is required!" }),
   img: z.instanceof(File, { message: "Image is required" }),
 });
 
 type Inputs = z.infer<typeof schema>;
+
 
 const StudentForm = ({
   type,
@@ -143,7 +144,7 @@ const StudentForm = ({
             className="text-xs text-gray-500 flex items-center justify-center gap-2 cursor-pointer"
             htmlFor="img"
           >
-            <img src="/upload.png" alt="" width={28} height={28} />
+            <Image src="/upload.png" alt="" width={28} height={28} />
             <span>Subir un foto</span>
           </label>
           <input type="file" id="img" {...register("img")} className="hidden" />

@@ -39,7 +39,7 @@ const EnrollmentForm = ({
   data,
 }: {
   type: "create" | "update";
-  data?: any;
+  data?: Inputs;
 }) => {
   const {
     register,

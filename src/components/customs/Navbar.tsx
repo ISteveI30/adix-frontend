@@ -1,5 +1,6 @@
 import { UserButton } from '@clerk/nextjs'
 import { currentUser } from '@clerk/nextjs/server'
+import Image from 'next/image'
 import Link from 'next/link'
 
 const Navbar = async () => {
@@ -11,7 +12,7 @@ const Navbar = async () => {
   return (
     <section className='flex items-center justify-between p-2'>
       <Link href="/" className="flex items-center justify-start p-2 gap-2">
-        <img src="/logo1.png" alt="Logotipo academia" width={100} height={20} />
+        <Image src="/logo1.png" alt="Logotipo academia" width={100} height={20} />
       </Link>
       <div className='flex items-center gap-6 justify-end w-full'>
         <div className='hidden lg:flex flex-col'>

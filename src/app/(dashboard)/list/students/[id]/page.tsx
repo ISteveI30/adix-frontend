@@ -1,5 +1,6 @@
 import BigCalendar from "@/components/customs/BigCalendar";
 import Performance from "@/components/customs/Performance";
+import Image from "next/image";
 import Link from "next/link";
 
 const SingleStudentPage = () => {
@@ -12,7 +13,7 @@ const SingleStudentPage = () => {
           {/* USER INFO CARD */}
           <div className="bg-userSky py-6 px-4 rounded-md flex-1 flex gap-4">
             <div className="w-1/3">
-              <img
+              <Image
                 src="https://images.pexels.com/photos/2888150/pexels-photo-2888150.jpeg?auto=compress&cs=tinysrgb&w=1200"
                 alt=""
                 width={144}
@@ -27,19 +28,19 @@ const SingleStudentPage = () => {
               </p>
               <div className="flex items-center justify-between gap-2 flex-wrap text-xs font-medium">
                 <div className="w-full md:w-1/3 lg:w-full 2xl:w-1/3 flex items-center gap-2">
-                  <img src="/blood.png" alt="" width={14} height={14} />
+                  <Image src="/blood.png" alt="" width={14} height={14} />
                   <span>A+</span>
                 </div>
                 <div className="w-full md:w-1/3 lg:w-full 2xl:w-1/3 flex items-center gap-2">
-                  <img src="/date.png" alt="" width={14} height={14} />
+                  <Image src="/date.png" alt="" width={14} height={14} />
                   <span>January 2025</span>
                 </div>
                 <div className="w-full md:w-1/3 lg:w-full 2xl:w-1/3 flex items-center gap-2">
-                  <img src="/mail.png" alt="" width={14} height={14} />
+                  <Image src="/mail.png" alt="" width={14} height={14} />
                   <span>user@gmail.com</span>
                 </div>
                 <div className="w-full md:w-1/3 lg:w-full 2xl:w-1/3 flex items-center gap-2">
-                  <img src="/phone.png" alt="" width={14} height={14} />
+                  <Image src="/phone.png" alt="" width={14} height={14} />
                   <span>+1 234 567</span>
                 </div>
               </div>
@@ -49,7 +50,7 @@ const SingleStudentPage = () => {
           <div className="flex-1 flex gap-4 justify-between flex-wrap">
             {/* CARD */}
             <div className="bg-white p-4 rounded-md flex gap-4 w-full md:w-[48%] xl:w-[45%] 2xl:w-[48%]">
-              <img
+              <Image
                 src="/singleAttendance.png"
                 alt=""
                 width={24}
@@ -63,7 +64,7 @@ const SingleStudentPage = () => {
             </div>
             {/* CARD */}
             <div className="bg-white p-4 rounded-md flex gap-4 w-full md:w-[48%] xl:w-[45%] 2xl:w-[48%]">
-              <img
+              <Image
                 src="/singleBranch.png"
                 alt=""
                 width={24}
@@ -77,7 +78,7 @@ const SingleStudentPage = () => {
             </div>
             {/* CARD */}
             <div className="bg-white p-4 rounded-md flex gap-4 w-full md:w-[48%] xl:w-[45%] 2xl:w-[48%]">
-              <img
+              <Image
                 src="/singleLesson.png"
                 alt=""
                 width={24}
@@ -91,7 +92,7 @@ const SingleStudentPage = () => {
             </div>
             {/* CARD */}
             <div className="bg-white p-4 rounded-md flex gap-4 w-full md:w-[48%] xl:w-[45%] 2xl:w-[48%]">
-              <img
+              <Image
                 src="/singleClass.png"
                 alt=""
                 width={24}

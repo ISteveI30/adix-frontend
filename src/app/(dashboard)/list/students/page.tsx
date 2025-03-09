@@ -4,6 +4,7 @@ import Pagination from "@/components/customs/Pagination";
 import TableSearch from "@/components/customs/TableSearch";
 import TableView from "@/components/customs/TableView";
 import { role, studentsData } from "@/lib/data";
+import Image from "next/image";
 import Link from "next/link";
 
 type Student = {
@@ -56,7 +57,7 @@ const StudentListPage = () => {
       className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-userPurpleLight"
     >
       <td className="flex items-center gap-4 p-4">
-        <img
+        <Image
           src={item.photo}
           alt=""
           width={40}
@@ -76,7 +77,7 @@ const StudentListPage = () => {
         <div className="flex items-center gap-2">
           <Link href={`/list/students/${item.id}`}>
             <button className="w-7 h-7 flex items-center justify-center rounded-full bg-userSky">
-              <img src="/view.png" alt="" width={16} height={16} />
+              <Image src="/view.png" alt="" width={16} height={16} />
             </button>
           </Link>
           {role === "admin" && (
@@ -98,10 +99,10 @@ const StudentListPage = () => {
           <TableSearch />
           <div className="flex items-center gap-4 self-end">
             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-userYellow">
-              <img src="/filter.png" alt="" width={14} height={14} />
+              <Image src="/filter.png" alt="" width={14} height={14} />
             </button>
             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-userYellow">
-              <img src="/sort.png" alt="" width={14} height={14} />
+              <Image src="/sort.png" alt="" width={14} height={14} />
             </button>
             {role === "admin" && (
               <>
