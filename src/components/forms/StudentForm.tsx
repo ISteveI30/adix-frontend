@@ -80,7 +80,7 @@ const StudentForm = ({
      
       <div className="flex justify-between flex-wrap gap-4">
         <InputField
-          label="Nmbre"
+          label="Nombre"
           name="firstName"
           defaultValue={data?.firstName}
           register={register}
@@ -111,13 +111,7 @@ const StudentForm = ({
           error={errors.address}
           className="md:w-1/4"
         />
-        {/* <InputField
-          label="Blood Type"
-          name="bloodType"
-          defaultValue={data?.bloodType}
-          register={register}
-          error={errors.bloodType}
-        /> */}
+       
         <InputField
           label="Cumpleaños"
           name="birthday"
