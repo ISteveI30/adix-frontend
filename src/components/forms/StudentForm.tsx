@@ -58,6 +58,7 @@ const StudentForm = ({
           defaultValue={data?.username}
           register={register}
           error={errors?.username}
+          className="md:w-1/4"
         />
         <InputField
           label="Email"
@@ -65,6 +66,7 @@ const StudentForm = ({
           defaultValue={data?.email}
           register={register}
           error={errors?.email}
+          className="md:w-1/4"
         />
         <InputField
           label="Colegio"
@@ -72,6 +74,7 @@ const StudentForm = ({
           defaultValue={data?.password}
           register={register}
           error={errors?.password}
+          className="md:w-1/4"
         />
       </div>
      
@@ -82,6 +85,7 @@ const StudentForm = ({
           defaultValue={data?.firstName}
           register={register}
           error={errors.firstName}
+          className="md:w-1/4"
         />
         <InputField
           label="Apellido"
@@ -89,6 +93,7 @@ const StudentForm = ({
           defaultValue={data?.lastName}
           register={register}
           error={errors.lastName}
+          className="md:w-1/4"
         />
         <InputField
           label="Celular"
@@ -96,6 +101,7 @@ const StudentForm = ({
           defaultValue={data?.phone}
           register={register}
           error={errors.phone}
+          className="md:w-1/4"
         />
         <InputField
           label="Dirección"
@@ -103,6 +109,7 @@ const StudentForm = ({
           defaultValue={data?.address}
           register={register}
           error={errors.address}
+          className="md:w-1/4"
         />
         {/* <InputField
           label="Blood Type"
@@ -118,6 +125,7 @@ const StudentForm = ({
           register={register}
           error={errors.birthday}
           type="date"
+          className="md:w-1/4"
         />
         <div className="flex flex-col gap-2 w-full md:w-1/4">
           <label className="text-xs text-gray-500">Sexo</label>
@@ -135,48 +143,7 @@ const StudentForm = ({
             </p>
           )}
         </div>
-        <div className="flex flex-col gap-2 w-full md:w-1/4">
-          <label className="text-xs text-gray-500">Carrera</label>
-          <select
-            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
-            {...register("sex")}
-            defaultValue={data?.sex}
-          >
-            <option value="Medicina">Medicina</option>
-            <option value="Turismo">Turismo</option>
-            <option value="Turismo">Informática</option>
-            <option value="Turismo">Ingeniería de Sistemas</option>
-            <option value="Turismo">Ingeniería Civil</option>
-          </select>
-          {errors.sex?.message && (
-            <p className="text-xs text-red-400">
-              {errors.sex.message.toString()}
-            </p>
-          )}
-        </div>
-        <div className="flex flex-col gap-2 w-full md:w-1/4">
-          <label className="text-xs text-gray-500">Ciclo</label>
-          <select
-            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
-            {...register("sex")}
-            defaultValue={data?.sex}
-          >
-            <option value="Medicina">PREUNIVERSITARIO SEMESTRAL</option>
-            <option value="Turismo">ESCOLAR FORMATIVO</option>
-            <option value="Turismo">PREUNIVERSITARIO TRIMESTRAL</option>
-            <option value="Turismo">PARALELO CEPUNT</option>
-            <option value="Turismo">PREUNIVERSITARIO ANUAL</option>
-            <option value="Turismo">PREQUINTO</option>
-            <option value="Turismo">ESCOLAR VERANO 1y2</option>
-            <option value="Turismo">ESCOLAR VERANO 3y4</option>
-            <option value="Turismo">REPASO</option>
-          </select>
-          {errors.sex?.message && (
-            <p className="text-xs text-red-400">
-              {errors.sex.message.toString()}
-            </p>
-          )}
-        </div>
+        
         <div className="flex flex-col gap-2 border w-full md:w-4/4 justify-center p-3">
           <label
             className="text-xs text-gray-500 flex items-center justify-center gap-2 cursor-pointer"

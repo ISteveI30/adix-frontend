@@ -5,23 +5,30 @@ import Pagination from "@/components/customs/Pagination";
 import TableSearch from "@/components/customs/TableSearch";
 import TableView from "@/components/customs/TableView";
 import {  role } from "@/lib/data";
+import { formateaFecha, formatearMoneda } from "@/lib/utils";
 
 type Enrollment = {
   id: string;
   startDate: string;
   endDate: string;
-  student: string[];
+  student: {
+    firstName: string;
+    lastName: string;
+  };
   modality: string;
   shift: string;
-  cycle: string[];
-  career: string[];
+  cycle: {
+    name:string
+  };
+  career: {
+    name:string
+  };
   totalCost: number;
   initialPayment: number;
   discount: number;
 };
 
 const dataEnrollments: Enrollment[] = await listEnrollments();
-console.log(dataEnrollments);
 
 const columns = [
   {
@@ -79,25 +86,16 @@ const EnrollmentListPage = () => {
       key={item.id}
       className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-userPurpleLight"
     >
-      <td className="flex items-center gap-4 p-4">
-        <div className="flex flex-col">
-          <h3 className="font-semibold">{item.startDate}</h3>
-        </div>
-      </td>
-      <td className="flex items-center gap-4 p-4">
-        <div className="flex flex-col">
-          <h3 className="font-semibold">{item.endDate}</h3>
-        </div>
-      </td>
-      
-      <td className="hidden md:table-cell">{item.student.join(",")}</td>
-      <td className="hidden md:table-cell">{item.modality}</td>
-      <td className="hidden md:table-cell">{item.shift}</td>
-      <td className="hidden md:table-cell">{item.cycle.join(",")}</td>
-      <td className="hidden md:table-cell">{item.career.join(",")}</td>
-      <td className="hidden md:table-cell">{item.totalCost}</td>
-      <td className="hidden md:table-cell">{item.initialPayment}</td>
-      <td className="hidden md:table-cell">{item.discount}</td>
+      <td className="hidden md:table-cell">{formateaFecha(item.startDate)}</td>
+      <td className="hidden md:table-cell">{formateaFecha(item.endDate)}</td>
+      <td className="hidden md:table-cell">{item.student.firstName}, {item.student.lastName}</td>
+      <td className="hidden md:table-cell">{item.modality }</td>
+      <td className="hidden md:table-cell">{item.shift ==="MANANA" ? "Mañana" : "Tarde"}</td>
+      <td className="hidden md:table-cell">{item.cycle.name}</td>
+      <td className="hidden md:table-cell">{item.career.name}</td>
+      <td className="hidden md:table-cell">{formatearMoneda(item.totalCost)}</td>
+      <td className="hidden md:table-cell">{formatearMoneda(item.initialPayment)}</td>
+      <td className="hidden md:table-cell">{formatearMoneda(item.discount)}</td>
 
       <td>
         <div className="flex items-center gap-2">

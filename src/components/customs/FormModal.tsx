@@ -1,7 +1,10 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import { JSX, useState } from "react";
+
+// type FormFunction<T> = (type: "create" | "update", data?: T) => JSX.Element;
 
 // const TeacherForm = dynamic(() => import("./forms/TeacherForm"), {
 //   loading: () => <h1>Loading...</h1>,
@@ -10,38 +13,47 @@ const StudentForm = dynamic(() => import("../forms/StudentForm"), {
   loading: () => <h1>Loading...</h1>,
 });
 
+const EnrollmentForm = dynamic(() => import("../forms/EnrollmentForm"), {
+  loading: () => <h1>Loading...</h1>,
+});
+
 const forms: {
   [key: string]: (type: "create" | "update", data?: any) => JSX.Element;
 } = {
   // teacher: (type, data) => <TeacherForm type={type} data={data} />,
-  student: (type, data) => <StudentForm type={type} data={data} />
+  student: (type, data) => <StudentForm type={type} data={data} />,
+  enrollment: (type, data) => <EnrollmentForm type={type} data={data} />
 };
 
-const FormModal = (
-  {
-    table,
-    type,
-    data,
-    id,
-  }: {
-    table:
-    | "teacher"
-    | "student"
-    | "parent"
-    | "enrollment"
-    | "subject"
-    | "class"
-    | "lesson"
-    | "exam"
-    | "assignment"
-    | "result"
-    | "attendance"
-    | "event"
-    | "announcement";
-    type: "create" | "update" | "delete";
-    data?: any;
-    id?: number | string;
-  }) => {
+const tables = [
+  "teacher",
+  "student",
+  "parent",
+  "enrollment",
+  "subject",
+  "class",
+  "lesson",
+  "exam",
+  "assignment",
+  "result",
+  "attendance",
+  "event",
+  "announcement",
+] as const;
+
+type TableType = (typeof tables)[number];
+
+type ActionType = "create" | "update" | "delete";
+
+
+interface FormModalProps {
+  table: TableType;
+  type: ActionType;
+  data?: any; 
+  id?: number | string;
+}
+
+const FormModal = ({ table, type, data, id }: FormModalProps) => {
 
   const size = type === 'create' ? 'size-8' : 'size-7'
   const bgColor = type === 'create' ? 'bg-userYellow' : type === 'update' ? 'bg-userSky' : 'bg-userPurple'
@@ -64,13 +76,14 @@ const FormModal = (
       "Form not found!"
     );
   };
+
   return (
     <>
       <button className={`${size} flex items-center justify-center rounded-full ${bgColor}`}
         onClick={() => setIsOpen(true)}
       >
 
-        <img src={`/${type}.png`} alt="" width={16} height={16} />
+        <Image src={`/${type}.png`} alt="" width={16} height={16} />
       </button>
       {isOpen && (
         <div className="w-screen h-screen absolute left-0 top-0 bg-black bg-opacity-60 z-50 flex items-center justify-center">
@@ -80,7 +93,7 @@ const FormModal = (
               className="absolute top-4 right-4 cursor-pointer"
               onClick={() => setIsOpen(false)}
             >
-              <img src="/close.png" alt="" width={14} height={14} />
+              <Image src="/close.png" alt="" width={14} height={14} />
             </div>
           </div>
         </div>
