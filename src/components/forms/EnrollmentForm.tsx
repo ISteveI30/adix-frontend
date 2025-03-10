@@ -32,7 +32,7 @@ const schema = z.object({
   notes: z.string().optional(),
 });
 
-type Inputs = z.infer<typeof schema>;
+export type Inputs = z.infer<typeof schema>;
 
 const EnrollmentForm = ({
   type,

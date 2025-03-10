@@ -3,12 +3,10 @@
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { JSX, useState } from "react";
+import { Inputs as StudentInputs } from "../forms/StudentForm";
+import { Inputs as EnrollmentInputs } from "../forms/EnrollmentForm";
 
-// type FormFunction<T> = (type: "create" | "update", data?: T) => JSX.Element;
-
-// const TeacherForm = dynamic(() => import("./forms/TeacherForm"), {
-//   loading: () => <h1>Loading...</h1>,
-// });
+// Dynamic imports for forms
 const StudentForm = dynamic(() => import("../forms/StudentForm"), {
   loading: () => <h1>Loading...</h1>,
 });
@@ -17,48 +15,49 @@ const EnrollmentForm = dynamic(() => import("../forms/EnrollmentForm"), {
   loading: () => <h1>Loading...</h1>,
 });
 
-const forms: {
-  [key: string]: (type: "create" | "update", data?: any) => JSX.Element;
-} = {
-  // teacher: (type, data) => <TeacherForm type={type} data={data} />,
-  student: (type, data) => <StudentForm type={type} data={data} />,
-  enrollment: (type, data) => <EnrollmentForm type={type} data={data} />
+// Define form data types
+type FormData = {
+  student: StudentInputs;
+  enrollment: EnrollmentInputs;
+  // Add other form data types here
 };
 
+// Define form function type
+type FormFunction<T> = (type: "create" | "update", data?: T) => JSX.Element;
+
+// Define forms object
+const forms: {
+  [K in keyof FormData]: FormFunction<FormData[K]>;
+} = {
+  student: (type, data) => <StudentForm type={type} data={data} tutorId="89" />,
+  enrollment: (type, data) => <EnrollmentForm type={type} data={data} />,
+  // Add other forms here
+};
+
+// Define table types
 const tables = [
-  "teacher",
   "student",
-  "parent",
   "enrollment",
-  "subject",
-  "class",
-  "lesson",
-  "exam",
-  "assignment",
-  "result",
-  "attendance",
-  "event",
-  "announcement",
+  // Add other tables here
 ] as const;
 
 type TableType = (typeof tables)[number];
-
 type ActionType = "create" | "update" | "delete";
 
-
+// Define FormModalProps interface
 interface FormModalProps {
   table: TableType;
   type: ActionType;
-  data?: any; 
+  data?: any;
   id?: number | string;
 }
 
+// FormModal component
 const FormModal = ({ table, type, data, id }: FormModalProps) => {
+  const size = type === 'create' ? 'size-8' : 'size-7';
+  const bgColor = type === 'create' ? 'bg-userYellow' : type === 'update' ? 'bg-userSky' : 'bg-userPurple';
 
-  const size = type === 'create' ? 'size-8' : 'size-7'
-  const bgColor = type === 'create' ? 'bg-userYellow' : type === 'update' ? 'bg-userSky' : 'bg-userPurple'
-
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
 
   const Form = () => {
     return type === "delete" && id ? (
@@ -82,7 +81,6 @@ const FormModal = ({ table, type, data, id }: FormModalProps) => {
       <button className={`${size} flex items-center justify-center rounded-full ${bgColor}`}
         onClick={() => setIsOpen(true)}
       >
-
         <Image src={`/${type}.png`} alt="" width={16} height={16} />
       </button>
       {isOpen && (
@@ -99,7 +97,7 @@ const FormModal = ({ table, type, data, id }: FormModalProps) => {
         </div>
       )}
     </>
-  )
-}
+  );
+};
 
-export default FormModal
+export default FormModal;

@@ -7,43 +7,49 @@ import InputField from "../customs/InputField";
 import Image from "next/image";
 
 const schema = z.object({
-  username: z
-    .string()
-    .min(3, { message: "Username must be at least 3 characters long!" })
-    .max(20, { message: "Username must be at most 20 characters long!" }),
-  email: z.string().email({ message: "Invalid email address!" }),
-  password: z
-    .string()
-    .min(8, { message: "Password must be at least 8 characters long!" }),
+  code: z.string().min(1, { message: "Code is required!" }),
   firstName: z.string().min(1, { message: "First name is required!" }),
   lastName: z.string().min(1, { message: "Last name is required!" }),
+  email: z.string().email({ message: "Invalid email address!" }),
   phone: z.string().min(1, { message: "Phone is required!" }),
   address: z.string().min(1, { message: "Address is required!" }),
   birthday: z.date({ message: "Birthday is required!" }),
-  sex: z.enum(["male", "female"], { message: "Sex is required!" }),
-  img: z.instanceof(File, { message: "Image is required" }),
+  gender: z.enum(["MASCULINO", "FEMENINO"], { message: "Gender is required!" }),
+  image: z.instanceof(File, { message: "Image is required" }),
+  school: z.string().min(1, { message: "School is required!" }), // Colegio como texto
+  tutorId: z.string().min(1, { message: "Tutor ID is required!" }), // Tutor ID obligatorio
 });
 
-type Inputs = z.infer<typeof schema>;
-
+export type Inputs = z.infer<typeof schema>;
 
 const StudentForm = ({
   type,
   data,
+  tutorId, // Recibir tutorId como prop
 }: {
   type: "create" | "update";
-  data?: any;
+  data?: Inputs;
+  tutorId: string; // Prop obligatoria
 }) => {
   const {
     register,
     handleSubmit,
     formState: { errors },
+    setValue,
   } = useForm<Inputs>({
     resolver: zodResolver(schema),
+    defaultValues: {
+      ...data,
+      tutorId, // Establecer tutorId como valor predeterminado
+    },
   });
 
   const onSubmit = handleSubmit((data) => {
-    console.log(data);
+    if (!tutorId) {
+      alert("Tutor ID is required!"); // Validar que tutorId esté presente
+      return;
+    }
+    console.log(data); // Aquí puedes enviar los datos al backend
   });
 
   return (
@@ -56,9 +62,9 @@ const StudentForm = ({
         <InputField
           label="Código de Alumno"
           name="code"
-          defaultValue={data?.username}
+          defaultValue={data?.code}
           register={register}
-          error={errors?.username}
+          error={errors?.code}
           className="md:w-1/4"
         />
         <InputField
@@ -72,13 +78,13 @@ const StudentForm = ({
         <InputField
           label="Colegio"
           name="school"
-          defaultValue={data?.password}
+          defaultValue={data?.school}
           register={register}
-          error={errors?.password}
+          error={errors.school}
           className="md:w-1/4"
         />
       </div>
-     
+
       <div className="flex justify-between flex-wrap gap-4">
         <InputField
           label="Nombre"
@@ -112,45 +118,43 @@ const StudentForm = ({
           error={errors.address}
           className="md:w-1/4"
         />
-       
         <InputField
           label="Cumpleaños"
           name="birthday"
-          defaultValue={data?.birthday}
+          defaultValue={data?.birthday ? data.birthday.toISOString().split('T')[0] : undefined}
           register={register}
           error={errors.birthday}
           type="date"
           className="md:w-1/4"
         />
         <div className="flex flex-col gap-2 w-full md:w-1/4">
-          <label className="text-xs text-gray-500">Sexo</label>
+          <label className="text-xs text-gray-500">Género</label>
           <select
             className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
-            {...register("sex")}
-            defaultValue={data?.sex}
+            {...register("gender")}
+            defaultValue={data?.gender}
           >
-            <option value="male">MASCULINO</option>
-            <option value="female">FEMENINO</option>
+            <option value="MASCULINO">MASCULINO</option>
+            <option value="FEMENINO">FEMENINO</option>
           </select>
-          {errors.sex?.message && (
+          {errors.gender?.message && (
             <p className="text-xs text-red-400">
-              {errors.sex.message.toString()}
+              {errors.gender.message.toString()}
             </p>
           )}
         </div>
-        
         <div className="flex flex-col gap-2 border w-full md:w-4/4 justify-center p-3">
           <label
             className="text-xs text-gray-500 flex items-center justify-center gap-2 cursor-pointer"
-            htmlFor="img"
+            htmlFor="image"
           >
             <Image src="/upload.png" alt="" width={28} height={28} />
-            <span>Subir un foto</span>
+            <span>Subir una foto</span>
           </label>
-          <input type="file" id="img" {...register("img")} className="hidden" />
-          {errors.img?.message && (
+          <input type="file" id="image" {...register("image")} className="hidden" />
+          {errors.image?.message && (
             <p className="text-xs text-red-400">
-              {errors.img.message.toString()}
+              {errors.image.message.toString()}
             </p>
           )}
         </div>
