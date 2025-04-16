@@ -50,7 +50,7 @@
 //   },
 // ];
 
-// const StudentListPage = () => {
+const StudentListPage = () => {
 //   const renderRow = (item: Student) => (
 //     <tr
 //       key={item.id}
@@ -118,6 +118,6 @@
 //       <Pagination />
 //     </div>
 //   );
-// };
+};
 
-// export default StudentListPage;
+export default StudentListPage;
