@@ -6,26 +6,26 @@ const MENU_ITEMS = [
       {
         icon: "/home.png",
         label: "Home",
-        href: "/",
+        href: "/admin",
         visible: ["admin", "student", "parent"],
       },
       {
         icon: "/student.png",
         label: "Interesado",
         href: "/list/teachers",
-        visible: ["admin", "teacher"],
+        visible: [],
       },
       {
         icon: "/teacher.png",
         label: "Alumno",
         href: "/list/students",
-        visible: ["admin", "teacher"],
+        visible: [],
       },
       {
         icon: "/parent.png",
         label: "Padre",
         href: "/list/parents",
-        visible: ["admin", "teacher"],
+        visible: [],
       },
       {
         icon: "/subject.png",
