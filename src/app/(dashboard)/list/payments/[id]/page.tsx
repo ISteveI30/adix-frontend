@@ -1,14 +1,15 @@
-import { Suspense} from 'react';
+import { Suspense } from 'react';
 import PaymentTable from '../paymentTable';
 
+interface PageProps {
+  params: Promise<{
+    id: string;
+  }>;
+}
+const PaymentListPage = async ({ params }: PageProps) => {
 
-  const PaymentListPage = async ({
-    params,
-  }: {
-    params: { id: string };
-  }) => {
   const { id } = await params;
-  
+
   return (
     <div className="flex flex-col gap-4 w-full p-4">
       <h1 className="text-2xl font-bold">Cuentas por cobrar</h1>
