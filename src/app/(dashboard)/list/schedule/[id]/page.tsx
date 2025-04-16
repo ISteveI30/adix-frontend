@@ -1,15 +1,16 @@
 // "use client";
 
-import { Suspense} from 'react';
+import { Suspense } from 'react';
 import ScheduleTable from '../scheduleTable';
 
+interface PageProps {
+  params: Promise<{
+    id: string;
+  }>;
+}
 
-  const AccountReceivableListPage =  async({
-    params,
-  }: {
-    params: { id: string };
-  }) => {
-  
+const AccountReceivableListPage = async ({ params }: PageProps) => {
+
   const { id } = await params;
 
   return (
