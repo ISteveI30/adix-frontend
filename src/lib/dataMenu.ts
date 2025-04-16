@@ -53,29 +53,29 @@ const MENU_ITEMS = [
       },
     ],
   },
-  {
-    title: "OTHER",
-    items: [
-      {
-        icon: "/profile.png",
-        label: "Perfil",
-        href: "/profile",
-        visible: ["admin", "teacher", "student", "parent"],
-      },
-      {
-        icon: "/setting.png",
-        label: "Ajustes",
-        href: "/settings",
-        visible: ["admin", "teacher", "student", "parent"],
-      },
-      {
-        icon: "/logout.png",
-        label: "Cerrar Sesión",
-        href: "/logout",
-        visible: ["admin", "teacher", "student", "parent"],
-      },
-    ],
-  },
+  // {
+  //   title: "OTHER",
+  //   items: [
+  //     {
+  //       icon: "/profile.png",
+  //       label: "Perfil",
+  //       href: "/profile",
+  //       visible: ["admin", "teacher", "student", "parent"],
+  //     },
+  //     {
+  //       icon: "/setting.png",
+  //       label: "Ajustes",
+  //       href: "/settings",
+  //       visible: ["admin", "teacher", "student", "parent"],
+  //     },
+  //     {
+  //       icon: "/logout.png",
+  //       label: "Cerrar Sesión",
+  //       href: "/logout",
+  //       visible: ["admin", "teacher", "student", "parent"],
+  //     },
+  //   ],
+  // },
 ];
 
 export default MENU_ITEMS;
