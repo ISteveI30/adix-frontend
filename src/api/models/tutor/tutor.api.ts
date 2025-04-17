@@ -11,10 +11,10 @@ export class TutorService {
   }
   
   static async saveTutor(tutor: Tutor): Promise<Tutor> {
-      const {id, ...tutorData}= tutor
+      // const {id, ...tutorData}= tutor
       const response = await fetchWrapper<Tutor>("/tutors", {
         method: "POST",
-        body: tutorData,
+        body: tutor,
       });
 
       return response;
@@ -27,6 +27,11 @@ export class TutorService {
       );
       return response;
     } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("Error al verificar el DNI:", error.message);
+      } else {
+        console.error("Error desconocido al verificar el DNI:", error);
+      }
       return { exists: false, tutor: undefined };
     }
   }
