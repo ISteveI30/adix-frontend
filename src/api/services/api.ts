@@ -24,13 +24,13 @@ export async function fetchWrapper<TResponse, TBody = unknown>(
   endpoint: string,
   options: FetchOptions<TBody> = {}
 ): Promise<TResponse> {
-  const { 
-    method = 'GET', 
-    body, 
+  const {
+    method = 'GET',
+    body,
     // token, 
-    timeout = 10000, 
-    headers = {}, 
-    ...restOptions 
+    timeout = 10000,
+    headers = {},
+    ...restOptions
   } = options;
 
   const defaultHeaders: HeadersInit = {
@@ -55,7 +55,7 @@ export async function fetchWrapper<TResponse, TBody = unknown>(
 
     // Clonamos la respuesta para poder leer el cuerpo múltiples veces si es necesario
     const responseClone = response.clone();
-    
+
     if (!response.ok) {
       let errorDetails: any;
       try {
@@ -78,11 +78,12 @@ export async function fetchWrapper<TResponse, TBody = unknown>(
       return data as TResponse;
     } catch (e) {
       // Si la respuesta no tiene cuerpo (como en algunos DELETE)
+      console.error('Error parsing response:', e);
       return undefined as unknown as TResponse;
     }
   } catch (error) {
     clearTimeout(timeoutId);
-    
+
     if (error instanceof Error && error.name === 'AbortError') {
       throw new ApiError('Request timeout', 408);
     }
