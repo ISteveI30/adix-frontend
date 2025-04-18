@@ -6,6 +6,7 @@ import TableView, { ColumnDefinition } from "@/components/customs/TableView";
 import { Button } from "@/components/ui/button";
 import { ROLE } from "@/lib/data";
 import { BadgeDollarSignIcon, CalendarDaysIcon, EyeOffIcon, Trash2Icon } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
@@ -98,7 +99,7 @@ export default function EnrollmentTable({
     return (
       <tr key={item.id} className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-userPurpleLight">
         <td className="flex items-center gap-4 p-4">
-          <img
+          <Image
             src={item.studentImage}
             alt={`Foto de ${item.studentName}`}
             width={40}
