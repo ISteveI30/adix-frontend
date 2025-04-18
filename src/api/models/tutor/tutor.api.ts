@@ -1,5 +1,5 @@
 import fetchWrapper from "@/api/services/api";
-import { Tutor } from "@/api/interfaces/tutor.interface";
+import { createTutor, Tutor } from "@/api/interfaces/tutor.interface";
 import { ConflictResolutionAction, TutorConflict } from "@/api/interfaces/enrollment.interface";
 
 export class TutorService {
@@ -10,9 +10,10 @@ export class TutorService {
     return await fetchWrapper<Tutor[]>(`${this.BASE_URL}/tutorSearch?query=${encodeURIComponent(searchTerm)}`)
   }
   
-  static async saveTutor(tutor: Tutor): Promise<Tutor> {
+  static async saveTutor(tutor: createTutor): Promise<createTutor> {
       // const {id, ...tutorData}= tutor
-      const response = await fetchWrapper<Tutor>("/tutors", {
+      console.log("tutor", tutor)
+      const response = await fetchWrapper<createTutor>("/tutors", {
         method: "POST",
         body: tutor,
       });
@@ -20,9 +21,9 @@ export class TutorService {
       return response;
   }
 
-  static async checkDni(dni: string): Promise<{ exists: boolean; tutor?: Tutor }> {
+  static async checkDni(dni: string): Promise<{ available: boolean; tutor?: Tutor }> {
     try {
-      const response = await fetchWrapper<{ exists: boolean; tutor?: Tutor }>(
+      const response = await fetchWrapper<{ available: boolean; tutor?: Tutor }>(
         `${this.BASE_URL}/check-dni/${dni}`
       );
       return response;
@@ -32,7 +33,7 @@ export class TutorService {
       } else {
         console.error("Error desconocido al verificar el DNI:", error);
       }
-      return { exists: false, tutor: undefined };
+      return { available: true , tutor: undefined };
     }
   }
 
@@ -71,7 +72,7 @@ export class TutorService {
 
 
   static async fetchTutorByDni(dni: string): Promise<Tutor | null> {
-    return fetchWrapper<Tutor>(`${this.BASE_URL}/${encodeURIComponent(dni)}`)
+    return await fetchWrapper<Tutor>(`${this.BASE_URL}/${encodeURIComponent(dni)}`)
   }
   
   //Actualizar un tutor
