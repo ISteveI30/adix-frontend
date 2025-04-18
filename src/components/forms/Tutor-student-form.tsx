@@ -16,7 +16,7 @@ import { TutorService } from "@/api/models/tutor/tutor.api";
 import { TutorType } from "@/api/interfaces/enrollment.interface";
 import { Tutor } from "@/api/interfaces/tutor.interface";
 import { Student } from "@/api/interfaces/student.interface";
-import { useTutorStudentStore } from "@/store/tutorStudentStore";
+import { toast } from "sonner";
 
 // Esquema del formulario
 const formSchema = z.object({
@@ -130,7 +130,7 @@ const TutorStudentForm: FC<TutorStudentFormProps> = ({ onSave, initialData, onCa
     });
   };
 
-  const resetStudentData = () => {      
+  const resetStudentData = () => {
     setValue("studentId", undefined);
     setValue("studentFirstName", "");
     setValue("studentLastName", "");
@@ -142,19 +142,28 @@ const TutorStudentForm: FC<TutorStudentFormProps> = ({ onSave, initialData, onCa
     setValue("studentBirthday", undefined);
   };
 
-  const fetchTutor = async () => {
+  async function fetchTutor() {
     try {
-      const results = await TutorService.fetchTutorByDni(dni);
-      
-      if (!results) {
-        handleTutorNotFound();
-        return;
-      }
+      // const results = await TutorService.fetchTutorByDni(dni);
+      const {available, tutor} = await TutorService.checkDni(dni);
 
-      setIsNewTutor(false);
-      updateTutorForm(results);
-      updateStudentOptions(results.students || []);
+      if (available && !initialData) {
+        toast.info("No se encontró el tutor, se puede crear uno nuevo.");
+
+        handleTutorNotFound();
+      } else {
+        if (!tutor) {
+          toast.error("No se encontró el tutor.");
+          handleTutorNotFound();
+          return;
+        }
+        setIsNewTutor(false);
+        updateTutorForm(tutor!);
+        updateStudentOptions(tutor?.students || []);
+        toast.success("Tutor encontrado.");
+      }
     } catch (error) {
+      console.error("Error fetching tutor:", error);
       if (!initialData) handleTutorNotFound();
     } finally {
       setLoading(false);
@@ -206,9 +215,8 @@ const TutorStudentForm: FC<TutorStudentFormProps> = ({ onSave, initialData, onCa
     setStudents(studentOptions);
   };
 
-  const handleTutorNotFound = () => {
+  function handleTutorNotFound() {
     resetTutorData();
-    // resetStudentData();
     setStudents([]);
     setIsNewTutor(true);
   };
