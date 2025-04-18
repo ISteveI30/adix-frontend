@@ -3,7 +3,7 @@
 // import Image from "next/image";
 // import Link from "next/link";
 
-// const SingleStudentPage = () => {
+const SingleStudentPage = () => {
 //   return (
 //     <div className="flex-1 p-4 flex flex-col gap-4 xl:flex-row">
 //       {/* LEFT */}
@@ -139,6 +139,6 @@
 //       </div>
 //     </div>
 //   );
-// };
+};
 
-// export default SingleStudentPage;
+export default SingleStudentPage;

@@ -41,7 +41,7 @@
 //   },
 // ];
 
-// const ParentListPage = () => {
+const ParentListPage = () => {
 //   const renderRow = (item: Parent) => (
 //     <tr
 //       key={item.id}
@@ -95,6 +95,6 @@
 //       <Pagination />
 //     </div>
 //   );
-// };
+};
 
-// export default ParentListPage;
+export default ParentListPage;
