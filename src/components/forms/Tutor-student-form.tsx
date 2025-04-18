@@ -145,6 +145,8 @@ const TutorStudentForm: FC<TutorStudentFormProps> = ({ onSave, initialData, onCa
   async function fetchTutor() {
     try {
       // const results = await TutorService.fetchTutorByDni(dni);
+      if (initialData) return
+      const { dni } = watch();
       const {available, tutor} = await TutorService.checkDni(dni);
 
       if (available && !initialData) {
@@ -153,14 +155,12 @@ const TutorStudentForm: FC<TutorStudentFormProps> = ({ onSave, initialData, onCa
         handleTutorNotFound();
       } else {
         if (!tutor) {
-          toast.error("No se encontró el tutor.");
           handleTutorNotFound();
           return;
         }
         setIsNewTutor(false);
         updateTutorForm(tutor!);
         updateStudentOptions(tutor?.students || []);
-        toast.success("Tutor encontrado.");
       }
     } catch (error) {
       console.error("Error fetching tutor:", error);
