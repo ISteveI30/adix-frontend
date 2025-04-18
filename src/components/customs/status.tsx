@@ -16,28 +16,28 @@ export default function PaymentStatus({ status }: { status: string }) {
     >
       {status === 'PENDIENTE' ? (
           <>
-            Pending
+            Pendiente
             <ClockIcon className="ml-1 w-4 text-gray-500" />
           </>
         ) : null
       }
       {status === 'PAGADO' ? (
           <>
-            Paid
+            Pagado
             <CheckIcon className="ml-1 w-4 text-white" />
           </>
         ) : null
       }
       {status === 'VENCIDO' ? (
           <>
-            Overdue
+            Vencido
             <ClockIcon className="ml-1 w-4 text-white" />
           </>
         ) : null
       }
       {status === 'ANULADO' ? (
           <>
-            Canceled
+            Anulado
             <ClockIcon className="ml-1 w-4 text-white" />
           </>
         ) : null
