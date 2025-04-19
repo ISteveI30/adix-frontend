@@ -1,44 +1,59 @@
 # Etapa 1: Construcción de la aplicación
-FROM node:18-alpine AS builder
+FROM node:alpine3.21 AS builder
 
-# Establece el directorio de trabajo
+# Instala dependencias del sistema necesarias
+RUN apk add --no-cache libc6-compat
+
 WORKDIR /app
 
-# Instala pnpm globalmente
-RUN npm install -g pnpm
+# Configura variables de entorno para la construcción
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
-# Copia los archivos de configuración del proyecto
+# Instala pnpm de manera eficiente
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Copia solo los archivos necesarios para instalar dependencias (mejor caché de Docker)
 COPY package.json pnpm-lock.yaml* ./
 
-# Instala las dependencias del proyecto con --strict-peer-dependencies=false
-RUN pnpm install --strict-peer-dependencies=false
+# Instala dependencias con pnpm
+RUN pnpm install --frozen-lockfile --prod=false
 
-# Copia el resto de los archivos del proyecto
+# Copia el resto de los archivos
 COPY . .
 
 # Construye la aplicación
 RUN pnpm build
 
-# Etapa 2: Imagen final ligera
-FROM node:18-alpine AS runner
+# Etapa 2: Imagen de producción optimizada
+FROM node:alpine3.21 AS runner
 
-# Establece el directorio de trabajo
 WORKDIR /app
 
-# Instala pnpm globalmente
-RUN npm install -g pnpm
+# Configura variables de entorno para producción
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
 
-# Copia solo los archivos necesarios desde la etapa de construcción
-COPY --from=builder /app/package.json /app/pnpm-lock.yaml ./
-COPY --from=builder /app/.next ./.next
+# Instala pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Copia solo los artefactos necesarios desde la etapa de construcción
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 
-# Elimina las dependencias de desarrollo
-RUN pnpm prune --prod
+# Configura usuario no root para mayor seguridad
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs && \
+    chown -R nextjs:nodejs /app/.next
 
-# Expone el puerto en el que se ejecutará la aplicación
+USER nextjs
+
 EXPOSE 3000
 
-# Comando para ejecutar la aplicación
-CMD ["pnpm", "start"]
+# Health check para monitoreo
+HEALTHCHECK --interval=30s --timeout=3s \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1
+
+CMD ["node", "server.js"]
