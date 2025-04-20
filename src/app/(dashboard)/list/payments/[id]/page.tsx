@@ -12,7 +12,7 @@ const PaymentListPage = async ({ params }: PageProps) => {
 
   return (
     <div className="flex flex-col gap-4 w-full p-4">
-      <h1 className="text-2xl font-bold">Cuentas por cobrar</h1>
+      <h1 className="text-2xl font-bold">Pagos Realizados</h1>
 
       <div className="overflow-x-auto">
         <Suspense key={id} fallback={<div className="p-4 text-center">Cargando tabla...</div>}>
