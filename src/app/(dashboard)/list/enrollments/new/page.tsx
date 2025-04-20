@@ -962,13 +962,11 @@ export default function EnrollmentForm() {
         setCycles(cyclesData)
         setAdmissions(admissionsData)
 
-        // Load careers if area is preselected
         if (initialData?.academic?.areaId) {
           const careersData = await getCareersByArea(initialData.academic.areaId)
           setCareers(careersData)
         }
 
-        // Set student if exists
         if (initialData?.student?.id) {
           setStudentId(initialData.student.id)
           setFormStep("academic")
@@ -977,7 +975,7 @@ export default function EnrollmentForm() {
             student: initialData.student!
           })
         }
-        // Set initial values if provided
+        
         if (initialData?.academic) {
           reset({
             ...initialData.academic,
@@ -1033,25 +1031,22 @@ export default function EnrollmentForm() {
     try {
       let savedTutor = tutorStudentData.tutor;
       if (!savedTutor.id) {
-        console.log("Guardando nuevo tutor:", savedTutor);
-        const { id, ...tutorData} = savedTutor;
-        console.log("Datos del tutor a guardar:", tutorData);
-        // Guardar el tutor y obtener el ID
+        const { id, ...tutorData } = savedTutor;
         savedTutor = await TutorService.saveTutor(tutorData);
         if (!savedTutor.id) throw new Error("No se pudo obtener el ID del tutor");
       } else {
         await TutorService.updateTutor(savedTutor);
       }
 
-      const savedStudent = await StudentService.saveStudent({
-        ...tutorStudentData.student,
-        tutorId: savedTutor.id
-      });
+      if (!tutorStudentData.student.id) {
+        const { id, ...studentData } = tutorStudentData.student;
+        tutorStudentData.student = await StudentService.saveStudent({ ...studentData, tutorId: savedTutor.id });
+        if (!tutorStudentData.student.id) throw new Error("No se pudo obtener el ID del estudiante");
+      } else
+        await StudentService.updateStudent(tutorStudentData.student);
 
-      if (!savedStudent.id) throw new Error("No se pudo obtener el ID del estudiante");
-
-      setStudentId(savedStudent.id);
-      return savedStudent.id;
+      setStudentId(tutorStudentData.student.id);
+      return tutorStudentData.student.id;
     } catch (error) {
       console.error("Error al guardar tutor/estudiante:", error);
       throw error;
@@ -1415,7 +1410,10 @@ export default function EnrollmentForm() {
                       checked={carnetPaid}
                       onCheckedChange={(checked) => {
                         setValue("paymentCarnet", !!checked)
-                        if (!checked) setValue("carnetCost", 0)
+                        if (!checked) {
+                          setValue("carnetCost", 0)
+                          trigger("carnetCost")
+                        }
                       }}
                     />
                     <Label htmlFor="paymentCarnet">Incluye pago de carnet</Label>
@@ -1427,7 +1425,10 @@ export default function EnrollmentForm() {
                       checked={creditEnabled}
                       onCheckedChange={(checked) => {
                         setValue("credit", !!checked)
-                        if (!checked) setValue("numInstallments", 1)
+                        if (!checked){
+                          setValue("numInstallments", 1)
+                          trigger("numInstallments")
+                        }
                       }}
                     />
                     <Label htmlFor="credit">Pago en cuotas</Label>
@@ -1442,7 +1443,7 @@ export default function EnrollmentForm() {
                         step="0.01"
                         {...register("carnetCost", {
                           valueAsNumber: true,
-                          onChange: () => trigger()
+                          onChange: () => trigger("carnetCost")
                         })}
                         className={errors.carnetCost ? "border-destructive" : ""}
                       />
