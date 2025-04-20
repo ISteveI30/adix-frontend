@@ -80,7 +80,6 @@ export default function EnrollmentTable({
         const { EnrollmentService } = await import("@/api/models/enrollment/enrollment.api");
         await EnrollmentService.deleteEnrollment(id);
         setDataEnrollment(prev => prev.filter(item => item.id !== id));
-        console.log("Matrícula eliminada:", id);
       } catch (error) {
         console.error("Error al eliminar la matrícula:", error);
       }finally {

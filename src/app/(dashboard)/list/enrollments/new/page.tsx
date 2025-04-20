@@ -1458,9 +1458,11 @@ export default function EnrollmentForm() {
                     <Input
                       type="number"
                       step="0.01"
+                      min={1}
                       {...register("totalCost", {
                         valueAsNumber: true,
-                        onChange: () => trigger()
+                        onChange: () => trigger(),
+                        validate: (value) => value > 0 || "El costo total es requerido"
                       })}
                       className={errors.totalCost ? "border-destructive" : ""}
                     />
@@ -1474,9 +1476,12 @@ export default function EnrollmentForm() {
                     <Input
                       type="number"
                       step="0.01"
+                      min={0}
+                      max={totalCost}
                       {...register("initialPayment", {
                         valueAsNumber: true,
-                        onChange: () => trigger()
+                        onChange: () => trigger(),
+                        validate: (value) => (value < totalCost) || "El pago inicial no puede ser mayor al costo total"
                       })}
                       className={errors.initialPayment ? "border-destructive" : ""}
                     />
@@ -1490,9 +1495,12 @@ export default function EnrollmentForm() {
                     <Input
                       type="number"
                       step="0.01"
+                      min={0}
+                      max={totalCost}
                       {...register("discounts", {
                         valueAsNumber: true,
-                        onChange: () => trigger()
+                        onChange: () => trigger(),
+                        validate: (value) => (value >= 0 && value < totalCost )|| "El descuento no puede ser mayor al costo total"
                       })}
                       className={errors.discounts ? "border-destructive" : ""}
                     />
@@ -1508,9 +1516,13 @@ export default function EnrollmentForm() {
                       <Label>N° de Cuotas*</Label>
                       <Input
                         type="number"
+                        min={1}
+                        max={12}
                         {...register("numInstallments", {
                           valueAsNumber: true,
-                          onChange: () => trigger()
+                          onChange: () => trigger(),
+                          required: creditEnabled ? "Este campo es requerido" : false,
+                          validate: (value) => creditEnabled && (value < 1 && value > 12) ? "Mínimo 1 y Máximo 12 cuotas" : true
                         })}
                         className={errors.numInstallments ? "border-destructive" : ""}
                       />
