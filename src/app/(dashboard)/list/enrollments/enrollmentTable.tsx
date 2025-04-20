@@ -4,6 +4,7 @@ import { EnrollmentWithStudent } from "@/api/interfaces/enrollment.interface";
 import Pagination from "@/components/customs/Pagination";
 import TableView, { ColumnDefinition } from "@/components/customs/TableView";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ROLE } from "@/lib/data";
 import { BadgeDollarSignIcon, CalendarDaysIcon, EyeOffIcon, Trash2Icon } from "lucide-react";
 import Image from "next/image";
@@ -34,42 +35,42 @@ export default function EnrollmentTable({
   });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const { EnrollmentService } = await import("@/api/models/enrollment/enrollment.api");
-        const { data, meta } = await EnrollmentService.listEnrollments();
+  const fetchData = async () => {
+    try {
+      const { EnrollmentService } = await import("@/api/models/enrollment/enrollment.api");
+      const { data, meta } = await EnrollmentService.listEnrollments();
 
-        if (!data || data.length === 0) {
-          setDataEnrollment([]);
-          setMetaData(meta);
-          console.info("No se encontraron datos de matrícula.");
-          return;
-        }
-
-        const transformed = data.map((item): EnrollmentWithStudent => ({
-          id: item.studentId,
-          enrollmentId: item.id,
-          codeStudent: item.codeStudent,
-          studentName: `${item.student?.firstName} ${item.student?.lastName}`,
-          careerName: item.career.name,
-          studentImage: item.student?.image ?? "/avatar.png",
-          studentPhone: item.student?.phone,
-          startDate: new Date(item.startDate).toLocaleDateString(),
-          endDate: new Date(item.endDate).toLocaleDateString(),
-        }));
-
-        setDataEnrollment(transformed);
-        setMetaData(meta);
-      } catch (error) {
+      if (!data || data.length === 0) {
         setDataEnrollment([]);
-        setMetaData({ lastPage: 0, page: 0, total: 0 });
-        console.error("Error al obtener datos de matrícula:", error);
-      } finally {
-        setLoading(false);
+        setMetaData(meta);
+        console.info("No se encontraron datos de matrícula.");
+        return;
       }
-    };
 
+      const transformed = data.map((item): EnrollmentWithStudent => ({
+        id: item.studentId,
+        enrollmentId: item.id,
+        codeStudent: item.codeStudent,
+        studentName: `${item.student?.firstName} ${item.student?.lastName}`,
+        careerName: item.career.name,
+        studentImage: item.student?.image ?? "/avatar.png",
+        studentPhone: item.student?.phone,
+        startDate: new Date(item.startDate).toLocaleDateString(),
+        endDate: new Date(item.endDate).toLocaleDateString(),
+      }));
+
+      setDataEnrollment(transformed);
+      setMetaData(meta);
+    } catch (error) {
+      setDataEnrollment([]);
+      setMetaData({ lastPage: 0, page: 0, total: 0 });
+      console.error("Error al obtener datos de matrícula:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -82,6 +83,8 @@ export default function EnrollmentTable({
         console.log("Matrícula eliminada:", id);
       } catch (error) {
         console.error("Error al eliminar la matrícula:", error);
+      }finally {
+        fetchData();
       }
     }
   };
@@ -148,6 +151,7 @@ export default function EnrollmentTable({
   };
 
   if (loading) {
+    // return <Skeleton className="h-10 w-full bg-amber-300" />;
     return <div>Cargando...</div>;
   }
 
