@@ -7,7 +7,7 @@ import TableView, { ColumnDefinition } from "@/components/customs/TableView";
 import { Button } from "@/components/ui/button";
 import { ROLE } from "@/lib/data";
 import { formatCurrency } from "@/lib/utils";
-import { Calendar1Icon, PencilIcon, PrinterIcon } from "lucide-react";
+import {  PencilIcon, PrinterIcon, Trash2Icon } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
@@ -80,9 +80,9 @@ export default function PaymentTable({
             <button
               title="Eliminar"
               // onClick={() => handleDelete(item.enrollmentId!)}
-              className="w-7 h-7 flex items-center justify-center rounded-full bg-green-500 text-white cursor-pointer"
+              className="w-7 h-7 flex items-center justify-center rounded-full bg-red-500 text-white cursor-pointer"
             >
-              <Calendar1Icon size={16} />
+              <Trash2Icon size={16} />
             </button>
           )}
         </td>
