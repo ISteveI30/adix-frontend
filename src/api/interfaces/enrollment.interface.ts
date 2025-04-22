@@ -67,7 +67,6 @@ export interface EnrollmentWithStudent  {
   studentPhone?: string
   studentImage: string
   careerName: string
-
   // [key: string]: unknown
 }
 export interface MetaData {
