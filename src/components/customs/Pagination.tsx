@@ -1,65 +1,3 @@
-// "use client";
-
-// import { ChevronLeft, ChevronRight } from "lucide-react";
-// import { cn } from "@/lib/utils"; // Si tienes una función utilitaria para concatenar clases opcionales
-
-// type PaginationProps = {
-//   currentPage: number;
-//   totalPages: number;
-//   onPageChange: (page: number) => void;
-// };
-
-// const Pagination: React.FC<PaginationProps> = ({
-//   currentPage,
-//   totalPages,
-//   onPageChange,
-// }) => {
-//   const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
-
-//   return (
-//     <div className="flex justify-center items-center gap-2 mt-4">
-//       <button
-//         onClick={() => onPageChange(currentPage - 1)}
-//         disabled={currentPage === 1}
-//         className={cn(
-//           "px-3 py-1 rounded-md text-sm bg-gray-100 hover:bg-gray-200 transition disabled:opacity-50",
-//           currentPage === 1 && "cursor-not-allowed"
-//         )}
-//       >
-//         <ChevronLeft size={16} />
-//       </button>
-
-//       {pages.map((page) => (
-//         <button
-//           key={page}
-//           onClick={() => onPageChange(page)}
-//           className={cn(
-//             "px-3 py-1 rounded-md text-sm",
-//             currentPage === page
-//               ? "bg-userPurple text-white"
-//               : "bg-gray-100 hover:bg-gray-200"
-//           )}
-//         >
-//           {page}
-//         </button>
-//       ))}
-
-//       <button
-//         onClick={() => onPageChange(currentPage + 1)}
-//         disabled={currentPage === totalPages}
-//         className={cn(
-//           "px-3 py-1 rounded-md text-sm bg-gray-100 hover:bg-gray-200 transition disabled:opacity-50",
-//           currentPage === totalPages && "cursor-not-allowed"
-//         )}
-//       >
-//         <ChevronRight size={16} />
-//       </button>
-//     </div>
-//   );
-// };
-
-// export default Pagination;
-
 'use client';
 
 import {ArrowLeftIcon,ArrowRightIcon } from "lucide-react";
@@ -69,7 +7,6 @@ import { generatePagination } from '@/lib/utils';
 import { usePathname, useSearchParams } from 'next/navigation';
 
 export default function Pagination({ totalPages }: { totalPages: number }) {
-  // NOTE: comment in this code when you get to this point in the course
  
   const pathname = usePathname()
   const searchParams = useSearchParams()

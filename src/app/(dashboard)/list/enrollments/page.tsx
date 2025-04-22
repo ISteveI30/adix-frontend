@@ -1,8 +1,8 @@
 // "use client";
 
-import { Suspense} from "react";
+import { Suspense } from "react";
 import Search from "@/components/forms/EnrollmentSearchForm";
-import  { CreateEnrollment } from "@/components/customs/ButtonsForm";
+import { CreateEnrollment } from "@/components/customs/ButtonsForm";
 import EnrollmentTable from "./enrollmentTable";
 
 
