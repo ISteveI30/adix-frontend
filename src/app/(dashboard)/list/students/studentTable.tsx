@@ -9,7 +9,7 @@ import { ROLE } from "@/lib/data";
 import { Edit3Icon, EyeOffIcon, Trash2Icon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useDeferredValue } from "react";
 import { toast } from "sonner";
 
 const ITEMS_PER_PAGE = 7;
@@ -121,6 +121,8 @@ export default function StudentTable({
     )
     : dataStudent;
 
+  const deferredData = useDeferredValue(filteredData)
+  
   const handlePageChange = (page: number) => {
     setCurrentPageState(page);
   };
@@ -144,7 +146,7 @@ export default function StudentTable({
 
   const renderRow = (item: StudentWithTutor) => {
     return (
-      <tr key={item.id} className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-userPurpleLight">
+      <tr key={item.id} className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-purple-200">
         <td className="flex items-center gap-4 p-4">
           <Image
             src={item.image!}
@@ -163,12 +165,7 @@ export default function StudentTable({
         <td className="hidden md:table-cell">{item.tutorName}</td>
         <td>
           <div className="flex items-center gap-2">
-            <Link href={`/list/students/${item.id}`} title="Ver Detalles">
-              <button className="w-7 h-7 flex items-center justify-center rounded-full bg-blue-500 text-white cursor-pointer">
-                <EyeOffIcon size={16} />
-              </button>
-            </Link>
-            <Link href={`/list/students/edit/${item.id}`} title="Editar">
+            <Link href={`/list/students/edit/${item.id}?page=${currentPage}`} title="Editar Estudiante">
               <Button className="w-7 h-7 flex items-center justify-center rounded-full bg-green-500 text-white cursor-pointer">
                 <Edit3Icon size={16} />
               </Button>
@@ -198,7 +195,7 @@ export default function StudentTable({
       <TableView
         columns={columns}
         renderRow={renderRow}
-        data={filteredData}
+        data={deferredData}
       />
       {metaData.total > ITEMS_PER_PAGE && (
         <div className="mt-5 flex w-full justify-center">

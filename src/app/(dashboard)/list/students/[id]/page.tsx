@@ -1,9 +1,21 @@
+// import { StudentService } from "@/api/models/student/students.api";
 // import BigCalendar from "@/components/customs/BigCalendar";
 // import Performance from "@/components/customs/Performance";
 // import Image from "next/image";
 // import Link from "next/link";
 
-const SingleStudentPage = () => {
+// interface PageProps {
+//   params: Promise<{
+//     id: string
+//   }>
+// }
+
+// const SingleStudentPage = async ({params}:PageProps) => {
+//   const { id } = await params;
+//   console.log(id)
+
+//   const studentData = await StudentService.getStudentById(id);
+
 //   return (
 //     <div className="flex-1 p-4 flex flex-col gap-4 xl:flex-row">
 //       {/* LEFT */}
@@ -14,34 +26,31 @@ const SingleStudentPage = () => {
 //           <div className="bg-userSky py-6 px-4 rounded-md flex-1 flex gap-4">
 //             <div className="w-1/3">
 //               <Image
-//                 src="https://images.pexels.com/photos/2888150/pexels-photo-2888150.jpeg?auto=compress&cs=tinysrgb&w=1200"
-//                 alt=""
+//                 src={studentData?.image || "/user.png"}
+//                 alt={studentData?.firstName}
 //                 width={144}
 //                 height={144}
 //                 className="w-36 h-36 rounded-full object-cover"
 //               />
 //             </div>
 //             <div className="w-2/3 flex flex-col justify-between gap-4">
-//               <h1 className="text-xl font-semibold">Cameron Moran</h1>
+//               <h1 className="text-xl font-semibold">{studentData.firstName} {studentData.lastName}</h1>
 //               <p className="text-sm text-gray-500">
-//                 Lorem ipsum, dolor sit amet consectetur adipisicing elit.
+//                 {studentData?.email}
 //               </p>
 //               <div className="flex items-center justify-between gap-2 flex-wrap text-xs font-medium">
-//                 <div className="w-full md:w-1/3 lg:w-full 2xl:w-1/3 flex items-center gap-2">
-//                   <Image src="/blood.png" alt="" width={14} height={14} />
-//                   <span>A+</span>
-//                 </div>
+                
 //                 <div className="w-full md:w-1/3 lg:w-full 2xl:w-1/3 flex items-center gap-2">
 //                   <Image src="/date.png" alt="" width={14} height={14} />
-//                   <span>January 2025</span>
+//                   <span>{studentData?.birthday}</span>
 //                 </div>
 //                 <div className="w-full md:w-1/3 lg:w-full 2xl:w-1/3 flex items-center gap-2">
 //                   <Image src="/mail.png" alt="" width={14} height={14} />
-//                   <span>user@gmail.com</span>
+//                   <span>{studentData.email}</span>
 //                 </div>
 //                 <div className="w-full md:w-1/3 lg:w-full 2xl:w-1/3 flex items-center gap-2">
 //                   <Image src="/phone.png" alt="" width={14} height={14} />
-//                   <span>+1 234 567</span>
+//                   <span>{studentData.phone}</span>
 //                 </div>
 //               </div>
 //             </div>
@@ -59,7 +68,7 @@ const SingleStudentPage = () => {
 //               />
 //               <div className="">
 //                 <h1 className="text-xl font-semibold">90%</h1>
-//                 <span className="text-sm text-gray-400">Attendance</span>
+//                 <span className="text-sm text-gray-400">Asistencia</span>
 //               </div>
 //             </div>
 //             {/* CARD */}
@@ -72,8 +81,8 @@ const SingleStudentPage = () => {
 //                 className="w-6 h-6"
 //               />
 //               <div className="">
-//                 <h1 className="text-xl font-semibold">6th</h1>
-//                 <span className="text-sm text-gray-400">Grade</span>
+//                 <h1 className="text-xl font-semibold">A</h1>
+//                 <span className="text-sm text-gray-400">Area</span>
 //               </div>
 //             </div>
 //             {/* CARD */}
@@ -100,7 +109,7 @@ const SingleStudentPage = () => {
 //                 className="w-6 h-6"
 //               />
 //               <div className="">
-//                 <h1 className="text-xl font-semibold">6A</h1>
+//                 <h1 className="text-xl font-semibold">Enfermeria</h1>
 //                 <span className="text-sm text-gray-400">Class</span>
 //               </div>
 //             </div>
@@ -139,6 +148,6 @@ const SingleStudentPage = () => {
 //       </div>
 //     </div>
 //   );
-};
+// };
 
-export default SingleStudentPage;
+// export default SingleStudentPage;

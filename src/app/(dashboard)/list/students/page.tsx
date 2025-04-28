@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import StudentTable from "./studentTable";
 import Search from "@/components/forms/EnrollmentSearchForm";
-import { CreateStudent } from "@/components/customs/ButtonsForm";
 
 
 const StudentListPage = async (
