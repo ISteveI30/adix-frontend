@@ -97,7 +97,7 @@ export default function EnrollmentTable({
 
   const renderRow = (item: EnrollmentWithStudent) => {
     return (
-      <tr key={item.id} className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-userPurpleLight">
+      <tr key={item.enrollmentId} className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-userPurpleLight">
         <td className="flex items-center gap-4 p-4">
           <Image
             src={item.studentImage}
@@ -117,11 +117,11 @@ export default function EnrollmentTable({
         <td className="hidden md:table-cell">{item.endDate}</td>
         <td>
           <div className="flex items-center gap-2">
-            <Link href={`/list/enrollments/${item.id}`} title="Ver Detalles">
+            {/* <Link href={`/list/enrollments/${item.id}`} title="Ver Detalles">
               <button className="w-7 h-7 flex items-center justify-center rounded-full bg-blue-500 text-white cursor-pointer">
                 <EyeOffIcon size={16} />
               </button>
-            </Link>
+            </Link> */}
             <Link href={`/list/schedule/${item.id}`} title="Ver Cronograma">
               <button className="w-7 h-7 flex items-center justify-center rounded-full bg-green-500 text-white cursor-pointer">
                 <CalendarDaysIcon size={16} />

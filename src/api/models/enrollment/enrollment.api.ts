@@ -20,12 +20,6 @@ export class EnrollmentService {
     })
   }
 
-  // static async updateEnrollment(data: Enrollment) {
-  //   return fetchWrapper<Enrollment>(`/enrollments/${data.id}`, {
-  //     method: "PUT",
-  //     body: data,
-  //   })
-  // }
   static async deleteEnrollment(id: string) {
     return fetchWrapper<Enrollment>(`/enrollments/${id}`, {
       method: "DELETE",
