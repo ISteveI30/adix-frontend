@@ -70,9 +70,7 @@ type FormField = {
 
 const TutorStudentForm: FC<TutorStudentFormProps> = ({ onSave, initialData, onCancel }: TutorStudentFormProps) => {
 
-  // const { tutorStudentData } = useTutorStudentStore();
-
-  const form = useForm<z.infer<typeof formSchema>>({
+   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: initialData || {},
   });
@@ -144,7 +142,6 @@ const TutorStudentForm: FC<TutorStudentFormProps> = ({ onSave, initialData, onCa
 
   async function fetchTutor() {
     try {
-      // const results = await TutorService.fetchTutorByDni(dni);
       if (initialData) return
       const { dni } = watch();
       const {available, tutor} = await TutorService.checkDni(dni);
