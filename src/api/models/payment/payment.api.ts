@@ -1,4 +1,4 @@
-import { CreatePaymentDto, PaymentAnulateDto, PaymentDto } from "@/api/interfaces/payment.interface"
+import { CreatePaymentDto, PaymentAnulateDto, PaymentDto, UpdatePaymentDto } from "@/api/interfaces/payment.interface"
 import fetchWrapper from "@/api/services/api"
 
 export class PaymentService {
@@ -7,7 +7,6 @@ export class PaymentService {
   }
   
   static async createPayment(createPaymentDto: CreatePaymentDto) {
-    console.log("createPaymentDto: ", createPaymentDto)
     return await fetchWrapper<CreatePaymentDto>("/payments", {
       method: "POST",
       body: createPaymentDto,
@@ -24,10 +23,11 @@ export class PaymentService {
   }
 
 
-  static async updatePayment(data: PaymentDto) {
-    return await fetchWrapper<PaymentDto>(`/payments/${data.id}`, {
-      method: "PUT",
-      body: data,
+  static async updatePayment(data: UpdatePaymentDto) {
+    const { id, ...rest } = data
+    return await fetchWrapper<UpdatePaymentDto>(`/payments/${id}`, {
+      method: "PATCH",
+      body: rest,
     })
   }
 
