@@ -1,6 +1,7 @@
 import React, { Suspense, use } from 'react'
 import TutorTable from './tutorTable'
 import Search from '@/components/forms/EnrollmentSearchForm'
+import { TutorSkeleton } from '@/components/customs/SkeletonTables'
 
 interface TutorListPageProps {
   searchParams?: Promise<{ query?: string, page?: string }>
@@ -22,8 +23,8 @@ const TutorListPage = (
           <Search placeholder="Buscar Apoderado..." />
         </div>
       </div>
-      <Suspense key={query + currentPage} fallback={<div className="p-4 text-center">Cargando Lista de Padres/Apoderados...</div>}>
-        <TutorTable query={query} currentPage={Number(currentPage)} />
+      <Suspense key={query + currentPage} fallback={<TutorSkeleton />}>
+        <TutorTable query={query} currentPage={currentPage} />
       </Suspense>
 
     </div>
