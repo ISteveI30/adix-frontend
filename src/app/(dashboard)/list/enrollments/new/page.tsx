@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import TutorStudentForm from "@/components/forms/Tutor-student-form"
+import TutorStudentForm from "@/components/forms/TutorStudentForm"
 
 // Services and types
 import { EnrollmentService } from "@/api/models/enrollment/enrollment.api"

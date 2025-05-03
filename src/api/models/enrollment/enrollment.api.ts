@@ -13,6 +13,11 @@ export class EnrollmentService {
     return listEnrollmente
   }
 
+  static async listEnrollmentsByPage(page: number, limit: number): Promise<EnrollmentListResponse> {
+    const listEnrollmente = await fetchWrapper<EnrollmentListResponse>(`/enrollments?page=${page}&limit=${limit}`)
+    return listEnrollmente
+  }
+
   static async createEnrollment(createEnrollmentDto: CreateEnrollmentDto) {
     return fetchWrapper<CreateEnrollmentDto>("/enrollments", {
       method: "POST",

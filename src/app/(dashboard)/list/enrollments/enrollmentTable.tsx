@@ -1,6 +1,8 @@
 "use client"
 
-import { EnrollmentWithStudent } from "@/api/interfaces/enrollment.interface";
+import { EnrollmentListResponse, EnrollmentWithStudent } from "@/api/interfaces/enrollment.interface";
+import { EnrollmentService } from "@/api/models/enrollment/enrollment.api";
+import { ITEMS_PER_PAGE } from "@/api/services/api";
 import Pagination from "@/components/customs/Pagination";
 import TableView, { ColumnDefinition } from "@/components/customs/TableView";
 import { Button } from "@/components/ui/button";
@@ -8,9 +10,8 @@ import { ROLE } from "@/lib/data";
 import { BadgeDollarSignIcon, CalendarDaysIcon, EyeOffIcon, Trash2Icon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect } from "react";
-
-const ITEMS_PER_PAGE = 10;
+import { useState, useEffect, useDeferredValue } from "react";
+import Swal from "sweetalert2";
 
 const columns: ColumnDefinition<EnrollmentWithStudent>[] = [
   { header: "Info", accessor: "info" },
@@ -22,82 +23,105 @@ const columns: ColumnDefinition<EnrollmentWithStudent>[] = [
 ];
 
 export default function EnrollmentTable({
-  query
+  query,
+  currentPage = 1,
 }: {
   query: string;
+  currentPage?: number;
 }) {
   const [dataEntollment, setDataEnrollment] = useState<EnrollmentWithStudent[]>([]);
   const [metaData, setMetaData] = useState({
-    lastPage: 0,
-    page: 0,
+    lastPage: 1,
+    page: 1,
     total: 0
   });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const { EnrollmentService } = await import("@/api/models/enrollment/enrollment.api");
-        const { data, meta } = await EnrollmentService.listEnrollments();
 
-        if (!data || data.length === 0) {
-          setDataEnrollment([]);
-          setMetaData(meta);
-          console.info("No se encontraron datos de matrícula.");
-          return;
-        }
+  const fetchData = async (page?: number, searchData?: boolean) => {
+    try {
+      setLoading(true);
 
-        const transformed = data.map((item): EnrollmentWithStudent => ({
-          id: item.studentId,
-          enrollmentId: item.id,
-          codeStudent: item.codeStudent,
-          studentName: `${item.student?.firstName} ${item.student?.lastName}`,
-          careerName: item.career.name,
-          studentImage: item.student?.image ?? "/avatar.png",
-          studentPhone: item.student?.phone,
-          startDate: new Date(item.startDate).toLocaleDateString(),
-          endDate: new Date(item.endDate).toLocaleDateString(),
-        }));
+      page = page || currentPage;
+      let response: EnrollmentListResponse = { data: [], meta: { lastPage: 1, page: 1, total: 0 } };
 
-        setDataEnrollment(transformed);
-        setMetaData(meta);
-      } catch (error) {
+      if (searchData) {
+        response = await EnrollmentService.listEnrollments();
+      } else {
+        response = await EnrollmentService.listEnrollmentsByPage(page, ITEMS_PER_PAGE);
+      }
+      const { data, meta }: EnrollmentListResponse = Array.isArray(response) ? response[0] : response;
+
+      if (!data || data.length === 0) {
         setDataEnrollment([]);
-        setMetaData({ lastPage: 0, page: 0, total: 0 });
-        console.error("Error al obtener datos de matrícula:", error);
-      } finally {
-        setLoading(false);
+        setMetaData({
+          lastPage: 1,
+          page: 1,
+          total: 0
+        });
+        console.info("No se encontraron datos de matrícula.");
+        return;
       }
-    };
 
-    fetchData();
-  }, []);
+      const transformed = data.map((item): EnrollmentWithStudent => ({
+        id: item.studentId,
+        enrollmentId: item.id,
+        codeStudent: item.codeStudent,
+        studentName: `${item.student?.firstName} ${item.student?.lastName}`,
+        careerName: item.career.name,
+        studentImage: item.student?.image ?? "/avatar.png",
+        studentPhone: item.student?.phone,
+        startDate: new Date(item.startDate).toLocaleDateString(),
+        endDate: new Date(item.endDate).toLocaleDateString(),
+      }));
 
-  const handleDelete = async (id: string) => {
-    if (confirm("¿Estás seguro de que deseas eliminar esta matrícula?")) {
-      try {
-        const { EnrollmentService } = await import("@/api/models/enrollment/enrollment.api");
-        await EnrollmentService.deleteEnrollment(id);
-        setDataEnrollment(prev => prev.filter(item => item.id !== id));
-        console.log("Matrícula eliminada:", id);
-      } catch (error) {
-        console.error("Error al eliminar la matrícula:", error);
-      }
+      setDataEnrollment(transformed);
+      setMetaData(meta);
+    } catch (error) {
+      console.error("Error al obtener datos de matrícula:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const filteredData = dataEntollment.filter((student) =>
-    `${student.studentName} ${student.codeStudent}`.toLowerCase().includes(query.toLowerCase())
-  );
 
-  const totalPages = Math.ceil(metaData.total / ITEMS_PER_PAGE);
-  const startIndex = (metaData.page - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentItems = filteredData.slice(startIndex, endIndex);
+  useEffect(() => {
+    if (query) {
+      fetchData(1, true);
+    } else {
+      fetchData(currentPage, false);
+    }
+  }, [query, currentPage]);
+
+  async function handleDelete(id: string) {
+    Swal.fire({
+          title: "¿Está seguro?",
+          text: "No podrás revertir esto!",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#3085d6",
+          cancelButtonColor: "#d33",
+          confirmButtonText: "Sí, eliminar!",
+        }).then(async (result) => {
+          if (result.isConfirmed) {
+            await EnrollmentService.deleteEnrollment(id);
+            setDataEnrollment(prev => prev.filter(item => item.id !== id));
+            Swal.fire("¡Anulado!",`Matrícula Eliminada`, "success");
+          }
+        });
+  };
+
+  const filteredData = query
+    ? dataEntollment.filter((student) =>
+      `${student.studentName} ${student.codeStudent}`.toLowerCase().includes(query.toLowerCase())
+    )
+    : dataEntollment;
+
+  const deferredData = useDeferredValue(filteredData)
 
   const renderRow = (item: EnrollmentWithStudent) => {
     return (
-      <tr key={item.enrollmentId} className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-userPurpleLight">
+      <tr key={item.enrollmentId} className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-purple-200">
         <td className="flex items-center gap-4 p-4">
           <Image
             src={item.studentImage}
@@ -148,7 +172,7 @@ export default function EnrollmentTable({
   };
 
   if (loading) {
-    return <div>Cargando...</div>;
+    return <div>Cargando Lista Estudiantes matriculados...</div>;
   }
 
   return (
@@ -156,11 +180,15 @@ export default function EnrollmentTable({
       <TableView
         columns={columns}
         renderRow={renderRow}
-        data={currentItems}
+        data={deferredData}
       />
-      <div className="mt-5 flex w-full justify-center">
-        <Pagination totalPages={totalPages} />
-      </div>
+      {metaData.total > ITEMS_PER_PAGE && (
+        <div className="mt-5 flex w-full justify-center">
+          <Pagination
+            totalPages={metaData.lastPage}
+          />
+        </div>
+      )}
     </>
   );
 }
