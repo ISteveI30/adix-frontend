@@ -21,9 +21,9 @@ import { redirect } from "next/navigation"
 
 export function PaymentForm({ data }: { data: AccountReceivable }) {
 
-  //TODO : PAGO PARCIAL O PAGO TOTAL
-  //TODO : VALIDAR QUE EL MONTO NO SEA MAYOR AL MONTO TOTAL DE LA CUENTA POR COBRAR
-
+  if (!data) {
+    return <div>No hay datos</div>
+  }
   const handleSubmit = async (
     _: unknown,
     formData: FormData,
@@ -41,7 +41,6 @@ export function PaymentForm({ data }: { data: AccountReceivable }) {
     }
 
     const parsedData: CreatePaymentDto = result.data;
-    console.log("parsedData: ", parsedData);
 
     Swal.fire({
       title: '¿Estás seguro?',
@@ -55,7 +54,6 @@ export function PaymentForm({ data }: { data: AccountReceivable }) {
     }).then(async (result) => {
       if (result.isConfirmed) {
         const response = await PaymentService.createPayment(parsedData)
-        console.log("parsedData: ", response);
         if (!response) {
           Swal.fire({
             icon: 'error',
@@ -69,14 +67,14 @@ export function PaymentForm({ data }: { data: AccountReceivable }) {
           title: 'Guardado',
           text: 'Pago guardado correctamente',
         })
-        redirect("/list/enrollments")
+        handleCancel()
       }
     }
     )
+  }
 
-
-    // await  PaymentService.createPayment(parsedData)
-
+  const handleCancel = () => {
+    redirect("/list/schedule/" + data.studentId)
   }
 
   const [state, formAction, isPending] = useActionState(handleSubmit, null)
@@ -154,7 +152,6 @@ export function PaymentForm({ data }: { data: AccountReceivable }) {
         />
       </div>
 
-
       <div className="flex flex-col gap-4">
         <InputFieldUpdate
           name="notes"
@@ -166,7 +163,7 @@ export function PaymentForm({ data }: { data: AccountReceivable }) {
       <div className="flex flex-col sm:flex-row justify-around gap-3">
         <Button
           type="button"
-          // onClick={handleCancel}
+          onClick={handleCancel}
           variant="destructive"
           className="bg-red-500 text-white rounded-md p-4 cursor-pointer"
           disabled={isPending}
