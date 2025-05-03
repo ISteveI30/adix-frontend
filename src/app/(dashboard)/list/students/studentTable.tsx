@@ -2,6 +2,7 @@
 
 import { StudentListResponse, StudentWithTutor } from "@/api/interfaces/student.interface";
 import { StudentService } from "@/api/models/student/students.api";
+import { ITEMS_PER_PAGE } from "@/api/services/api";
 import Pagination from "@/components/customs/Pagination";
 import TableView, { ColumnDefinition } from "@/components/customs/TableView";
 import { Button } from "@/components/ui/button";
@@ -11,8 +12,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useDeferredValue } from "react";
 import { toast } from "sonner";
+import Swal from "sweetalert2";
 
-const ITEMS_PER_PAGE = 7;
 
 const columns: ColumnDefinition<StudentWithTutor>[] = [
   { header: "Info", accessor: "info" },
@@ -97,7 +98,7 @@ export default function StudentTable({
         school: item.school,
         tutorName: `${item.tutor?.firstName} ${item.tutor?.lastName}`,
       }));
-      setDataStudentList(transformed);
+      setDataStudentList(transformed); 
     } catch (error) {
       console.error("Error fetching all data:", error);
     } finally {
@@ -128,20 +129,22 @@ export default function StudentTable({
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm("¿Estás seguro de que deseas eliminar este estudiante?")) {
-      try {
+   
+    Swal.fire({
+      title: "¿Estás seguro?",
+      text: "No podrás revertir esto!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, eliminar!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
         const response = await StudentService.deleteStudent(id);
-        if (!response.state) {
-          toast.error(response.message);
-          return;
-        }
-        toast.success(response.message);
+        if (!response.state) return
         fetchData(currentPageState);
-      } catch (error) {
-        console.error("Error al eliminar el estudiante:", error);
-        toast.error("Error al eliminar el estudiante");
       }
-    }
+    })
   };
 
   const renderRow = (item: StudentWithTutor) => {
@@ -164,7 +167,7 @@ export default function StudentTable({
         <td className="hidden lg:table-cell">{item.phone}</td>
         <td className="hidden md:table-cell">{item.tutorName}</td>
         <td>
-          <div className="flex items-center gap-2">
+          <div className="flex items-start gap-2">
             <Link href={`/list/students/edit/${item.id}?page=${currentPage}`} title="Editar Estudiante">
               <Button className="w-7 h-7 flex items-center justify-center rounded-full bg-green-500 text-white cursor-pointer">
                 <Edit3Icon size={16} />

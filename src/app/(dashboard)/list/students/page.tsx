@@ -23,7 +23,7 @@ const StudentListPage = async (
           <Search placeholder="Buscar alumno..." />
         </div>
       </div>
-      <Suspense key={query + currentPage} fallback={<div className="p-4 text-center">Cargando tabla...</div>}>
+      <Suspense key={query + currentPage} fallback={<div className="p-4 text-center">Cargando Lista de Alumnos...</div>}>
         <StudentTable query={query} currentPage={currentPage} />
       </Suspense>
     </div>
