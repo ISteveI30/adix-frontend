@@ -63,22 +63,29 @@ export default function PaymentTable({
         <td className="p-3 hidden md:table-cell">{item.paymentMethod}</td>
 
         <td className="p-3 flex items-center justify-center gap-2">
-          <button
-            title="Editar"
-            className="w-7 h-7 flex items-center justify-center rounded-full bg-amber-500 text-white cursor-pointer"
-          >
-            <PencilIcon size={16} />
-          </button>
+          {
+            item.status != "ANULADO" && (
+              <>
+                <Link href={`/list/payments/edit/${item.id}`} title="Editar Pago">
+                  <button
+                    className="w-7 h-7 flex items-center justify-center rounded-full bg-amber-500 text-white cursor-pointer"
+                  >
+                    <PencilIcon size={16} />
+                  </button>
+                </Link>
+                <button
+                  title="Imprimir"
+                  onClick={() => console.log("Imprimir", item.id)}
+                  className="w-7 h-7 flex items-center justify-center rounded-full bg-blue-500 text-white cursor-pointer"
+                >
+                  <PrinterIcon size={16} />
+                </button>
+              </>
+            )
+          }
 
-          <button
-            title="Imprimir"
-            onClick={() => console.log("Imprimir", item.id)}
-            className="w-7 h-7 flex items-center justify-center rounded-full bg-blue-500 text-white cursor-pointer"
-          >
-            <PrinterIcon size={16} />
-          </button>
 
-          {ROLE === "admin" && (
+          {ROLE === "admin" &&  item.status != "ANULADO" && (
             <button
               title="Eliminar"
               onClick={() => handleDelete(item.id)}
@@ -123,7 +130,7 @@ export default function PaymentTable({
           });
           return
         }
-        Swal.fire("¡Anulado!",` ${response.message}`, "success");
+        Swal.fire("¡Anulado!", ` ${response.message}`, "success");
         redirect(`/list/schedule/${id}`)
       }
     });
