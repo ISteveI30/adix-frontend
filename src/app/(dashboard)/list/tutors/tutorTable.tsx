@@ -1,15 +1,12 @@
-// "use client"
 import { TutorListResponse, TutorWithStudent } from "@/api/interfaces/tutor.interface"
 import { TutorService } from "@/api/models/tutor/tutor.api"
 import { ITEMS_PER_PAGE } from "@/api/services/api"
 import Pagination from "@/components/customs/Pagination"
 import TableView, { ColumnDefinition } from "@/components/customs/TableView"
 import { Button } from "@/components/ui/button"
-import { ROLE } from "@/lib/data"
-import { Edit3Icon, Trash2Icon } from "lucide-react"
+import { EyeIcon } from "lucide-react"
 import Link from "next/link"
 import { use } from "react"
-import Swal from "sweetalert2"
 
 const columns: ColumnDefinition<TutorWithStudent>[] = [
   { header: "Info", accessor: "info" },
@@ -20,8 +17,7 @@ const columns: ColumnDefinition<TutorWithStudent>[] = [
   { header: "Acciones", accessor: "actions" },
 ]
 
-
-const TutorTable = (
+const TutorTable =  (
   props: {
     query: string;
     currentPage?: number;
@@ -44,34 +40,6 @@ const TutorTable = (
   const filteredLastPage = query.length > 0 ? Math.ceil(filteredData.length / ITEMS_PER_PAGE) : meta.lastPage
   const dataRender = !query ? data : filteredData
 
-  const handleDelete =  (id: string) => {
-    const result =  Swal.fire({
-      title: "¿Está seguro de eliminar este tutor?",
-      text: "Esta acción no se puede deshacer.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Eliminar",
-      cancelButtonText: "Cancelar",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        const response = use(TutorService.deleteTutor(id))
-        if (!response.state) {
-          Swal.fire({
-            title: "Error",
-            text: response.message,
-            icon: "error",
-          })
-          return
-        }
-        Swal.fire({
-          title: "Eliminado",
-          text: response.message,
-          icon: "success",
-        })
-      }
-    }
-    )
-  }
 
   const renderRow = (item: TutorWithStudent) => {
     return (
@@ -89,20 +57,11 @@ const TutorTable = (
         <td className="p-2 hidden md:table-cell">{item.observation}</td>
         <td>
         <div className="flex items-start gap-2">
-          <Link href={`/list/tutors/${item.id}?page=${currentPage}`} title="Editar Tutor">
-            <Button className="w-7 h-7 flex items-center justify-center rounded-full bg-green-400 text-white hover:bg-green-600 cursor-pointer">
-              <Edit3Icon size={16} />
+          <Link href={`/list/tutors/${item.id}?page=${currentPage}`} title="Ver Apoderado" className="w-full">
+            <Button className="w-7 h-7 flex items-center justify-center rounded-full bg-blue-600 text-white hover:bg-blue-800 cursor-pointer">
+              <EyeIcon size={16} />
             </Button>
           </Link>
-          {ROLE === "admin" && (
-            <Button
-              title="Eliminar"
-              // onClick={() => handleDelete(item.id)}
-              className="w-7 h-7 flex items-center justify-center rounded-full bg-red-400 text-white hover:bg-red-600 cursor-pointer"
-            >
-              <Trash2Icon size={16} />
-            </Button>
-          )}
         </div>
         </td>
       </tr>
@@ -111,7 +70,6 @@ const TutorTable = (
 
   return (
     <>
-
       <TableView
         columns={columns}
         renderRow={renderRow}
