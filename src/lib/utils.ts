@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react"
+// "use client"
+
+// import { useEffect, useState } from "react"
 
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
-import { Tutor } from "@/api/interfaces/tutor.interface";
-import { Student } from "@/api/interfaces/student.interface";
-import { TutorStudentData, TutorStudentNestedData, TutorType } from "@/api/interfaces/enrollment.interface";
+// import { Tutor } from "@/api/interfaces/tutor.interface";
+// import { Student } from "@/api/interfaces/student.interface";
+// import { TutorStudentData, TutorStudentNestedData, TutorType } from "@/api/interfaces/enrollment.interface";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -26,6 +28,7 @@ export function formatDateToLocal(date: Date): string {
     day: "2-digit",
   });
 }
+
 export function formatDateToLocalWithTime(date: Date): string {
   return date.toLocaleDateString("es-PE", {
     year: "numeric",
@@ -36,31 +39,32 @@ export function formatDateToLocalWithTime(date: Date): string {
     second: "2-digit",
   });
 }
- export const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('es-PE', {
-      style: 'currency',
-      currency: 'PEN'
-    }).format(value)
-  }
 
-export function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [value, delay]);
-
-  return debouncedValue;
+export const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat('es-PE', {
+    style: 'currency',
+    currency: 'PEN'
+  }).format(value)
 }
 
+// export function useDebounce<T>(value: T, delay: number): T {
+//   const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+//   useEffect(() => {
+//     const handler = setTimeout(() => {
+//       setDebouncedValue(value);
+//     }, delay);
+
+//     return () => {
+//       clearTimeout(handler);
+//     };
+//   }, [value, delay]);
+
+//   return debouncedValue;
+// }
+
 export const generatePagination = (currentPage: number, totalPages: number) => {
- 
+
   if (totalPages <= 7) {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   }
