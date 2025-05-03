@@ -65,26 +65,39 @@ const TutorEditForm = (
           label="Nombre"
           name="firstName"
           defaultValue={data.firstName}
+          inputProps={
+            { maxLength: 50, minLength: 3, pattern: '[a-zA-Z ]*' }
+          }
         />
         <InputFieldUpdate
           label="Apellido"
           name="lastName"
           defaultValue={data.lastName}
+          inputProps={
+            { maxLength: 50, minLength: 3, pattern: '[a-zA-Z ]*' }
+          }
         />
         <InputFieldUpdate
           label="DNI"
           name="dni"
           defaultValue={data.dni}
+          inputProps={
+            { maxLength: 8, minLength: 8, pattern: '[0-9]*' }
+          }
         />
         <InputFieldUpdate
           label="Celular"
           name="phone1"
           defaultValue={data.phone1}
+          inputProps={
+            { maxLength: 9, minLength: 9, pattern: '[0-9]*' }
+          }
         />
         <InputFieldUpdate
           label="Email"
           name="email"
           defaultValue={data.email}
+          type='email'  
         />
         <div>
           <label className="text-sm font-semibold text-gray-700">Tipo de Apoderado</label>
@@ -112,6 +125,9 @@ const TutorEditForm = (
           label="Teléfono 2"
           name="phone2"
           defaultValue={data.phone2}
+          inputProps={
+            { maxLength: 9, pattern: '[0-9]*' }
+          }
         />
         <InputFieldUpdate
           label="Observación"
