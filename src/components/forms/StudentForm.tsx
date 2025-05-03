@@ -53,11 +53,13 @@ const StudentForm = (
           label="Nombre"
           name="firstName"
           defaultValue={data.firstName}
+          inputProps={{ maxLength: 50, minLength: 3, pattern: '[a-zA-Z ]*' }}
         />
         <InputFieldUpdate
           label="Apellido"
           name="lastName"
           defaultValue={data.lastName}
+          inputProps={{ maxLength: 50, minLength: 3, pattern: '[a-zA-Z ]*' }}
         />
         <InputFieldUpdate
           label="DNI"
@@ -69,6 +71,7 @@ const StudentForm = (
           label="Teléfono"
           name="phone"
           defaultValue={data.phone}
+          inputProps={{ maxLength: 9, pattern: "[0-9]*" }}
         />
         <InputFieldUpdate
           label="Email"

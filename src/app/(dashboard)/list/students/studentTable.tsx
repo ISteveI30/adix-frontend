@@ -141,7 +141,14 @@ export default function StudentTable({
     }).then(async (result) => {
       if (result.isConfirmed) {
         const response = await StudentService.deleteStudent(id);
-        if (!response.state) return
+        if (!response.state) {
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: response.message,
+          });
+          return;
+        }
         fetchData(currentPageState);
       }
     })
