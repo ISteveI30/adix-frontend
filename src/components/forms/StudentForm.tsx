@@ -53,13 +53,13 @@ const StudentForm = (
           label="Nombre"
           name="firstName"
           defaultValue={data.firstName}
-          inputProps={{ maxLength: 50, minLength: 3, pattern: '[a-zA-Z ]*' }}
+          inputProps={{ maxLength: 50, minLength: 3, pattern: '[a-zA-ZáéíóúÁÉÍÓÚñÑ ]*' }}
         />
         <InputFieldUpdate
           label="Apellido"
           name="lastName"
           defaultValue={data.lastName}
-          inputProps={{ maxLength: 50, minLength: 3, pattern: '[a-zA-Z ]*' }}
+          inputProps={{ maxLength: 50, minLength: 3, pattern: '[a-zA-ZáéíóúÁÉÍÓÚñÑ ]*' }}
         />
         <InputFieldUpdate
           label="DNI"
