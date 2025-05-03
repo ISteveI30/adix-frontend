@@ -24,7 +24,7 @@ const MENU_ITEMS = [
       {
         icon: "/parent.png",
         label: "Padre",
-        href: "/list/parents",
+        href: "/list/tutors",
         visible: [],
       },
       {

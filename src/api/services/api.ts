@@ -1,4 +1,5 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+export const ITEMS_PER_PAGE = 5; // Número de elementos por página para paginación
 
 export interface MetaData {
   lastPage: number;
