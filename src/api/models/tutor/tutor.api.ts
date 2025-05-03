@@ -98,6 +98,13 @@ export class TutorService {
     return fetchWrapper<TutorListResponse>(`${this.BASE_URL}`)
   }
 
+  static async deleteTutor(id: string):  Promise<{ message: string, state:boolean }>  {
+     const { message, state } = await fetchWrapper<{ message: string, state:boolean }>(`${this.BASE_URL}/${id}`, {
+      method: "DELETE",
+    })
+    return { message, state }
+  }
+
 }
 
 
