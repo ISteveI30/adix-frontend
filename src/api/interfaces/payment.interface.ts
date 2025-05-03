@@ -1,3 +1,4 @@
+import { AccountReceivable } from "./account-receivable.interface"
 
 export enum PaymentStatus {
   PENDIENTE = "PENDIENTE",
@@ -36,7 +37,16 @@ export interface CreatePaymentDto {
   dueDate: string
   amountPaid: number
   paymentDate?: string
-  paymentMethod: PaymentMethod
+  paymentMethod?: PaymentMethod
   status: PaymentStatus
   notes?: string
+}
+
+export interface UpdatePaymentDto {
+  id: string
+  invoiceNumber?: string
+  paymentDate?: string
+  paymentMethod?: PaymentMethod
+  notes?: string
+  accountReceivable?: AccountReceivable
 }

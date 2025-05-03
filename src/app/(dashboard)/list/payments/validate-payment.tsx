@@ -13,3 +13,14 @@ export const validatePaymentSchema = z.object({
   notes: z.string().optional(),
 });
 
+
+export const validatePaymentUpdateSchema = z.object({
+  id: z.string().uuid("ID de Pago inválida"),
+  invoiceNumber: z.string().optional(),
+  paymentDate: z.string(),
+  paymentMethod: z.nativeEnum(PaymentMethod),
+  notes: z.string().optional(),
+});
+
+export type ValidatePaymentSchema = z.infer<typeof validatePaymentSchema>;
+export type ValidatePaymentUpdateSchema = z.infer<typeof validatePaymentUpdateSchema>;
