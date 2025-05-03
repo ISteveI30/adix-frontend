@@ -1,11 +1,15 @@
+// "use client"
 import { TutorListResponse, TutorWithStudent } from "@/api/interfaces/tutor.interface"
 import { TutorService } from "@/api/models/tutor/tutor.api"
 import { ITEMS_PER_PAGE } from "@/api/services/api"
 import Pagination from "@/components/customs/Pagination"
 import TableView, { ColumnDefinition } from "@/components/customs/TableView"
-import { Edit3Icon } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { ROLE } from "@/lib/data"
+import { Edit3Icon, Trash2Icon } from "lucide-react"
 import Link from "next/link"
 import { use } from "react"
+import Swal from "sweetalert2"
 
 const columns: ColumnDefinition<TutorWithStudent>[] = [
   { header: "Info", accessor: "info" },
@@ -31,7 +35,7 @@ const TutorTable = (
   const allTutorsData: TutorListResponse = use(TutorService.getAllTutors())
 
   const { data, meta }: TutorListResponse = Array.isArray(tutorData) ? tutorData[0] : tutorData
-  const { data: allTutors, meta: allMeta }: TutorListResponse = Array.isArray(allTutorsData) ? allTutorsData[0] : allTutorsData
+  const { data: allTutors }: TutorListResponse = Array.isArray(allTutorsData) ? allTutorsData[0] : allTutorsData
 
   const filteredData = query.length > 0
     ? allTutors.filter((tutor) => `${tutor.firstName} ${tutor.lastName} ${tutor.dni}`.toLowerCase().includes(query.toLowerCase()))
@@ -40,9 +44,38 @@ const TutorTable = (
   const filteredLastPage = query.length > 0 ? Math.ceil(filteredData.length / ITEMS_PER_PAGE) : meta.lastPage
   const dataRender = !query ? data : filteredData
 
+  const handleDelete =  (id: string) => {
+    const result =  Swal.fire({
+      title: "¿Está seguro de eliminar este tutor?",
+      text: "Esta acción no se puede deshacer.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Eliminar",
+      cancelButtonText: "Cancelar",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const response = use(TutorService.deleteTutor(id))
+        if (!response.state) {
+          Swal.fire({
+            title: "Error",
+            text: response.message,
+            icon: "error",
+          })
+          return
+        }
+        Swal.fire({
+          title: "Eliminado",
+          text: response.message,
+          icon: "success",
+        })
+      }
+    }
+    )
+  }
+
   const renderRow = (item: TutorWithStudent) => {
     return (
-      <tr key={item.id} className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-green-50">
+      <tr key={item.id} className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-green-50 ">
         <td className="flex items-center gap-4 p-4">
           <div className="flex flex-col">
             <h3 className="font-semibold">{item.firstName} {item.lastName}</h3>
@@ -54,13 +87,23 @@ const TutorTable = (
         <td className="p-2 hidden md:table-cell">{item.type}</td>
         <td className="p-2 hidden md:table-cell">{item.students ? item.students.length : 0}</td>
         <td className="p-2 hidden md:table-cell">{item.observation}</td>
-        <td className="p-2 flex gap-2">
-          {
-            <Link href={`/list/tutors/${item.id}?page=${currentPage}`} className="text-green-500 hover:text-green-700">
-              <span className="text-xs">Editar</span>
-              <Edit3Icon size={16} className="text-green-500" />
-            </Link>
-          }
+        <td>
+        <div className="flex items-start gap-2">
+          <Link href={`/list/tutors/${item.id}?page=${currentPage}`} title="Editar Tutor">
+            <Button className="w-7 h-7 flex items-center justify-center rounded-full bg-green-400 text-white hover:bg-green-600 cursor-pointer">
+              <Edit3Icon size={16} />
+            </Button>
+          </Link>
+          {ROLE === "admin" && (
+            <Button
+              title="Eliminar"
+              // onClick={() => handleDelete(item.id)}
+              className="w-7 h-7 flex items-center justify-center rounded-full bg-red-400 text-white hover:bg-red-600 cursor-pointer"
+            >
+              <Trash2Icon size={16} />
+            </Button>
+          )}
+        </div>
         </td>
       </tr>
     )
