@@ -13,6 +13,11 @@ export class StudentService {
     return fetchWrapper<{ data: Student[]; meta: { lastPage: number; page: number; total: number } }>(`/students?page=${page}&limit=${limit}`)
   }
 
+  static async StudentByPage(page: number, limit: number): Promise<StudentListResponse> {
+    const response = await fetchWrapper<StudentListResponse>(`/students?page=${page}&limit=${limit}`)
+    return response
+  }
+
    static async searchStudents(searchTerm: string): Promise<Student[]> {
     return fetchWrapper<Student[]>(`/students/findStudentByName?query=${encodeURIComponent(searchTerm)}`)
   }
