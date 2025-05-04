@@ -8,6 +8,11 @@ export class AccountReceivableService {
     return data
   }
 
+  static async listAccountReceivablesByCodeStudent(codeStudent: string) {
+    const data = await fetchWrapper<AccountReceivable[]>(`/account-receivables/codeStudent/${codeStudent}`)
+    return data
+  }
+
   static async listAccountReceivables() {
     const data = await fetchWrapper<AccountReceivable[]>("/account-receivables")
     return data
