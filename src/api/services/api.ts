@@ -44,7 +44,7 @@ const DEFAULT_TIMEOUT = 10000;
  * @returns Promise con los datos de la respuesta
  * @throws ApiError cuando la respuesta no es exitosa
  */
-export async function apiFetch<TResponse = void, TBody = unknown>(
+export async function fetchWrapper<TResponse = void, TBody = unknown>(
   endpoint: string,
   options: FetchOptions<TBody> = {}
 ): Promise<TResponse> {
@@ -125,4 +125,4 @@ function handleFetchError(error: unknown): never {
   );
 }
 
-export default apiFetch;
+export default fetchWrapper;
