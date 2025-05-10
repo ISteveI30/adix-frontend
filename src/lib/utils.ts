@@ -1,13 +1,5 @@
-// "use client"
-
-// import { useEffect, useState } from "react"
-
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-
-// import { Tutor } from "@/api/interfaces/tutor.interface";
-// import { Student } from "@/api/interfaces/student.interface";
-// import { TutorStudentData, TutorStudentNestedData, TutorType } from "@/api/interfaces/enrollment.interface";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -23,6 +15,15 @@ export function formatDateToISOWithTime(date: Date): string {
 
 export function formatDateToLocal(date: Date): string {
   return date.toLocaleDateString("es-PE", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+}
+
+export function formatDateToLocalFromISO(date: string): string {
+  const dateObj = new Date(date);
+  return dateObj.toLocaleDateString("es-PE", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
