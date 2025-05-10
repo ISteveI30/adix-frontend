@@ -7,10 +7,10 @@ export default function PaymentStatus({ status }: { status: string }) {
       className={clsx(
         'inline-flex items-center rounded-full px-2 py-1 text-xs',
         {
-          'bg-gray-100 text-gray-500': status === 'PENDIENTE',
+          'bg-yellow-300 text-black': status === 'PENDIENTE',
           'bg-green-500 text-white': status === 'PAGADO',
           'bg-red-500 text-white': status === 'VENCIDO',
-          'bg-yellow-500 text-white': status === 'ANULADO',
+          'bg-gray-500 text-white': status === 'ANULADO',
         },
       )}
     >

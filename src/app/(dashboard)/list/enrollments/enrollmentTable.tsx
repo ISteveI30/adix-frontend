@@ -83,8 +83,7 @@ export default function EnrollmentTable({
       setLoading(false);
     }
   };
-
-
+  
   useEffect(() => {
     if (query) {
       fetchData(1, true);
@@ -141,18 +140,14 @@ export default function EnrollmentTable({
         <td className="hidden md:table-cell">{item.endDate}</td>
         <td>
           <div className="flex items-center gap-2">
-            {/* <Link href={`/list/enrollments/${item.id}`} title="Ver Detalles">
-              <button className="w-7 h-7 flex items-center justify-center rounded-full bg-blue-500 text-white cursor-pointer">
-                <EyeOffIcon size={16} />
-              </button>
-            </Link> */}
-            <Link href={`/list/schedule/${item.id}`} title="Ver Cronograma">
-              <button className="w-7 h-7 flex items-center justify-center rounded-full bg-green-500 text-white cursor-pointer">
+  
+            <Link href={`/list/schedule/${item.codeStudent}`} title="Ver Cronograma">
+              <button className="w-7 h-7 flex items-center justify-center rounded-full bg-yellow-500 text-white cursor-pointer">
                 <CalendarDaysIcon size={16} />
               </button>
             </Link>
             <Link href={`/list/payments/${item.id}`} title="Ver Pagos">
-              <Button className="w-7 h-7 flex items-center justify-center rounded-full bg-yellow-500 text-white cursor-pointer">
+              <Button className="w-7 h-7 flex items-center justify-center rounded-full bg-green-500 text-white cursor-pointer">
                 <BadgeDollarSignIcon size={16} />
               </Button>
             </Link>

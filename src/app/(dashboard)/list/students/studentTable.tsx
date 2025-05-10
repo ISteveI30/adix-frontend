@@ -1,18 +1,13 @@
-"use client"
-
 import { StudentListResponse, StudentWithTutor } from "@/api/interfaces/student.interface";
 import { StudentService } from "@/api/models/student/students.api";
 import { ITEMS_PER_PAGE } from "@/api/services/api";
 import Pagination from "@/components/customs/Pagination";
 import TableView, { ColumnDefinition } from "@/components/customs/TableView";
 import { Button } from "@/components/ui/button";
-import { ROLE } from "@/lib/data";
-import { Edit3Icon, EyeOffIcon, Trash2Icon } from "lucide-react";
+import {  EyeIcon,  } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect, useDeferredValue } from "react";
-import { toast } from "sonner";
-import Swal from "sweetalert2";
+import {  use } from "react";
 
 
 const columns: ColumnDefinition<StudentWithTutor>[] = [
@@ -25,134 +20,78 @@ const columns: ColumnDefinition<StudentWithTutor>[] = [
 
 export default function StudentTable({
   query,
-  currentPage = 1,
+  currentPage,
 }: {
   query: string;
   currentPage?: number;
 }) {
-  const [dataStudent, setDataStudent] = useState<StudentWithTutor[]>([]);
-  const [dataStudentList, setDataStudentList] = useState<StudentWithTutor[]>([]);
-  const [metaData, setMetaData] = useState({
-    lastPage: 1,
-    page: 1,
-    total: 0
-  });
-  const [loading, setLoading] = useState(true);
-  const [currentPageState, setCurrentPageState] = useState(currentPage);
 
-  const fetchData = async (page: number = 1) => {
-    try {
-      setLoading(true);
-      const response = await StudentService.listStudentsByPage(page, ITEMS_PER_PAGE);
+  currentPage = currentPage || 1;
 
-      const { data, meta }: StudentListResponse = Array.isArray(response) ? response[0] : response;
+  const dataStudentByPage: StudentListResponse = use(StudentService.StudentByPage(currentPage, ITEMS_PER_PAGE))
+  const allStudentsData: StudentListResponse[] = use(StudentService.listStudents())
 
-      if (!data || data.length === 0) {
-        setDataStudent([]);
-        setMetaData({
-          lastPage: 1,
-          page: 1,
-          total: 0
-        });
-        console.info("No se encontraron datos de estudiantes.");
-        return;
-      }
+  const { data, meta }: StudentListResponse = Array.isArray(dataStudentByPage) ? dataStudentByPage[0] : dataStudentByPage
+  const { data: allStudents }: StudentListResponse = Array.isArray(allStudentsData) ? allStudentsData[0] : allStudentsData
 
-      const transformed = data.map((item): StudentWithTutor => ({
-        id: item.id!,
-        firstName: item.firstName,
-        lastName: item.lastName,
-        dni: item.dni,
-        email: item.email,
-        phone: item.phone,
-        image: item.image ?? "/avatar.png",
-        school: item.school,
-        tutorName: `${item.tutor?.firstName} ${item.tutor?.lastName}`,
-      }));
+  const dataStudent = data.map((item: StudentListResponse['data'][number]): StudentWithTutor => ({
+    id: item.id!,
+    firstName: item.firstName,
+    lastName: item.lastName,
+    dni: item.dni,
+    email: item.email,
+    phone: item.phone,
+    image: item.image ?? "/avatar.png",
+    school: item.school,
+    tutorName: `${item.tutor?.firstName} ${item.tutor?.lastName}`,
+  }))
 
+  const dataStudentList = allStudents.map((item): StudentWithTutor => ({
+    id: item.id!,
+    firstName: item.firstName,
+    lastName: item.lastName,
+    dni: item.dni,
+    email: item.email,
+    phone: item.phone,
+    image: item.image ?? "/avatar.png",
+    school: item.school,
+    tutorName: `${item.tutor?.firstName} ${item.tutor?.lastName}`,
+  }));
 
-      setDataStudent(transformed);
-      setMetaData(meta);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      toast.error("Error al cargar los estudiantes");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchAllData = async () => {
-    try {
-      setLoading(true);
-      const response = await StudentService.listStudents();
-      const { data } = Array.isArray(response) ? response[0] : response;
-
-      const transformed = data.map((item): StudentWithTutor => ({
-        id: item.id!,
-        firstName: item.firstName,
-        lastName: item.lastName,
-        dni: item.dni,
-        email: item.email,
-        phone: item.phone,
-        image: item.image ?? "/avatar.png",
-        school: item.school,
-        tutorName: `${item.tutor?.firstName} ${item.tutor?.lastName}`,
-      }));
-      setDataStudentList(transformed); 
-    } catch (error) {
-      console.error("Error fetching all data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (query) {
-      fetchAllData();
-      setCurrentPageState(1);
-    } else {
-      fetchData(currentPageState);
-    }
-  }, [query, currentPageState]);
-
-
-  const filteredData = query
+  const filteredData = query.length > 0
     ? dataStudentList.filter((student) =>
       `${student.firstName} ${student.lastName} ${student.dni}`.toLowerCase().includes(query.toLowerCase())
     )
-    : dataStudent;
+    : [];
 
-  const deferredData = useDeferredValue(filteredData)
-  
-  const handlePageChange = (page: number) => {
-    setCurrentPageState(page);
-  };
+  const filteredLastPage = query.length > 0 ? Math.ceil(filteredData.length / ITEMS_PER_PAGE) : meta.lastPage;
+  const renderData = query.length>0 ? filteredData.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE): dataStudent
 
-  const handleDelete = async (id: string) => {
-   
-    Swal.fire({
-      title: "¿Estás seguro?",
-      text: "No podrás revertir esto!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Sí, eliminar!",
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        const response = await StudentService.deleteStudent(id);
-        if (!response.state) {
-          Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: response.message,
-          });
-          return;
-        }
-        fetchData(currentPageState);
-      }
-    })
-  };
+  // const handleDelete = async (id: string) => {
+
+  //   Swal.fire({
+  //     title: "¿Estás seguro?",
+  //     text: "No podrás revertir esto!",
+  //     icon: "warning",
+  //     showCancelButton: true,
+  //     confirmButtonColor: "#3085d6",
+  //     cancelButtonColor: "#d33",
+  //     confirmButtonText: "Sí, eliminar!",
+  //   }).then(async (result) => {
+  //     if (result.isConfirmed) {
+  //       const response = await StudentService.deleteStudent(id);
+  //       if (!response.state) {
+  //         Swal.fire({
+  //           icon: "error",
+  //           title: "Error",
+  //           text: response.message,
+  //         });
+  //         return;
+  //       }
+  //       // fetchData(currentPageState);
+  //     }
+  //   })
+  // };
 
   const renderRow = (item: StudentWithTutor) => {
     return (
@@ -176,41 +115,28 @@ export default function StudentTable({
         <td>
           <div className="flex items-start gap-2">
             <Link href={`/list/students/edit/${item.id}?page=${currentPage}`} title="Editar Estudiante">
-              <Button className="w-7 h-7 flex items-center justify-center rounded-full bg-green-500 text-white cursor-pointer">
-                <Edit3Icon size={16} />
-              </Button>
+            <Button className="w-7 h-7 flex items-center justify-center rounded-full bg-blue-600 text-white hover:bg-blue-800 cursor-pointer">
+              <EyeIcon size={16} />
+            </Button>
             </Link>
-
-            {ROLE === "admin" && (
-              <Button
-                title="Eliminar"
-                onClick={() => handleDelete(item.id)}
-                className="w-7 h-7 flex items-center justify-center rounded-full bg-red-500 text-white cursor-pointer"
-              >
-                <Trash2Icon size={16} />
-              </Button>
-            )}
           </div>
         </td>
       </tr>
     );
   }
 
-  if (loading) {
-    return <div className="flex justify-center items-center h-64">Cargando estudiantes...</div>;
-  }
 
   return (
     <>
       <TableView
         columns={columns}
         renderRow={renderRow}
-        data={deferredData}
+        data={renderData}
       />
-      {metaData.total > ITEMS_PER_PAGE && (
+      {meta.total > ITEMS_PER_PAGE && (
         <div className="mt-5 flex w-full justify-center">
           <Pagination
-            totalPages={metaData.lastPage}
+            totalPages={filteredLastPage}
           />
         </div>
       )}

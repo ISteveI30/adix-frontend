@@ -10,7 +10,7 @@
 //   }>
 // }
 
-// const SingleStudentPage = async ({params}:PageProps) => {
+const SingleStudentPage = async () => {
 //   const { id } = await params;
 //   console.log(id)
 
@@ -148,6 +148,6 @@
 //       </div>
 //     </div>
 //   );
-// };
+};
 
-// export default SingleStudentPage;
+export default SingleStudentPage;

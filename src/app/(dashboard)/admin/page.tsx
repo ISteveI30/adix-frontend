@@ -11,7 +11,7 @@ const AdminPage = () => {
           <UserCard type="Estudiante" />
           <UserCard type="Interesado" />
           <UserCard type="Ingresos" />
-          <UserCard type="Gastos" />
+          {/* <UserCard type="Gastos" /> */}
         </article>
         <article className="flex gap-4 flex-col lg:flex-row">
           <div className="w-full lg:w-1/3 h-[450px]">

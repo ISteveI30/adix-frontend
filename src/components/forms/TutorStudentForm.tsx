@@ -172,7 +172,6 @@ const TutorStudentForm: FC<TutorStudentFormProps> = ({ onSave, initialData, onCa
     reset(initialData || {});
   }, [initialData, reset]);
 
-  // Efecto para buscar tutor cuando el DNI cambia
   useEffect(() => {
     if (dni?.length === 8) {
       setLoading(true);
@@ -183,7 +182,7 @@ const TutorStudentForm: FC<TutorStudentFormProps> = ({ onSave, initialData, onCa
       setStudents([]);
     }
 
-  }, [dni]);
+  }, [dni, initialData, reset]);
 
   const updateTutorForm = (tutor: Tutor) => {
     setValue("tutorId", tutor.id!);
@@ -419,7 +418,7 @@ const TutorStudentForm: FC<TutorStudentFormProps> = ({ onSave, initialData, onCa
 
         {/* Botones */}
         <footer className="flex justify-end gap-4 pt-4 border-t">
-          {onCancel && (
+          {/* {onCancel && (
             <Button
               type="button"
               variant="outline"
@@ -428,7 +427,7 @@ const TutorStudentForm: FC<TutorStudentFormProps> = ({ onSave, initialData, onCa
             >
               Cancelar
             </Button>
-          )}
+          )} */}
           <Button
             type="submit"
             className="px-6"

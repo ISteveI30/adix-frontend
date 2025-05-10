@@ -64,8 +64,11 @@ const PaymentEditForm = (
     })
   }
 
-  const [state, formAction, isPending] = useActionState(handleSubmit, null)
-  console.log("state", state)
+  const [isError, formAction, isPending] = useActionState(handleSubmit, null)
+ 
+  if (isError) {
+    return <div>Error al guardar el pago</div>
+  }
 
   const handleCancel = () => {
     redirect("/list/payments/" + data.accountReceivable!.studentId!)

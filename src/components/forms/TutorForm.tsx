@@ -10,6 +10,7 @@ import { TutorType } from '@/api/interfaces/enrollment.interface';
 import { TutorService } from '@/api/models/tutor/tutor.api';
 import Swal from 'sweetalert2';
 import { ROLE } from '@/lib/data';
+import { tutorSchema } from '@/app/(dashboard)/list/tutors/validate.tutor';
 
 interface TutorPageProps {
   data: UpdateTutor
@@ -21,35 +22,46 @@ interface TutorPageProps {
 const TutorForm = (
   { data, page, onSuccess, onDelete }: TutorPageProps
 ) => {
+  
+  const [isError, editAction, isPending] = useActionState(handleSubmit, null)
+  
+  async function handleSubmit(_: unknown,
+    formData: FormData) {
+    const rawData = Object.fromEntries(formData.entries());
 
-  const handleSubmit = async (
-    _: unknown,
-    formData: FormData,
-  ) => {
-    const rawData = Object.fromEntries(formData.entries())
-    const parsedData: UpdateTutor = {
+    const parsedData = tutorSchema.safeParse({
       ...rawData, id: data.id
+    })
+    
+    if (!parsedData.success) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: parsedData.error.errors[0].message,
+      })
+      return
     }
-    const response = await TutorService.updateTutor(parsedData)
+
+    const response = await TutorService.updateTutor(parsedData.data);
     if (!response) {
       Swal.fire({
         icon: 'error',
         title: 'Error',
         text: 'Error al actualizar el tutor',
-      })
+      });
     } else {
       Swal.fire({
         icon: 'success',
         title: 'Éxito',
         text: 'Tutor actualizado correctamente',
-      })
-      onSuccess?.(response)
-      handleCancel()
+      });
+      onSuccess?.(response);
+      handleCancel();
     }
 
   }
 
-  const handleDelete = async (id: string) => {
+  async function handleDelete(id: string) {
     const result = await Swal.fire({
       title: "¿Está seguro de eliminar este tutor?",
       text: "Esta acción no se puede deshacer.",
@@ -57,23 +69,23 @@ const TutorForm = (
       showCancelButton: true,
       confirmButtonText: "Eliminar",
       cancelButtonText: "Cancelar",
-    })
+    });
     if (result.isConfirmed) {
-      const response = await TutorService.deleteTutor(id)
+      const response = await TutorService.deleteTutor(id);
       if (!response.state) {
         Swal.fire({
           title: "Error",
           text: response.message,
           icon: "error",
-        })
+        });
       } else {
         Swal.fire({
           title: "Éxito",
           text: response.message,
           icon: "success",
-        })
-        onDelete?.(id)
-        handleCancel()
+        });
+        onDelete?.(id);
+        handleCancel();
       }
     }
   }
@@ -83,7 +95,6 @@ const TutorForm = (
     redirect(`/list/tutors?page=${page}`)
   }
 
-  const [isError, editAction, isPending] = useActionState(handleSubmit, null)
 
   if (isError) {
     console.error('Error al editar el tutor', isError)

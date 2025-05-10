@@ -8,6 +8,8 @@ import { StudentService } from '@/api/models/student/students.api';
 import { redirect } from 'next/navigation';
 import InputFieldUpdate from '../customs/InputFieldUpdate';
 import { toast } from 'sonner';
+import Swal from 'sweetalert2';
+import { ROLE } from '@/lib/data';
 
 interface StudentFormProps {
   data: Student;
@@ -24,27 +26,77 @@ const StudentForm = (
     formData: FormData,
   ) => {
     const rawData = Object.fromEntries(formData.entries())
-    const parsedData: Student = schemaStudent.parse({
-      ...rawData, id: data.id, tutorId: data.tutorId
+
+    const parsedResult = schemaStudent.safeParse({
+      ...rawData,
+      id: data.id,
+      tutorId: data.tutorId,
     })
 
-    const response = await StudentService.updateStudent(parsedData)
+    if (!parsedResult.success) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: parsedResult.error.errors[0].message,
+      })
+      return
+    }
+
+    const response = await StudentService.updateStudent({
+      ...parsedResult.data,
+      email: parsedResult.data.email!,
+    })
     if (!response) {
-      toast.error('Error al actualizar el estudiante')
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Error al actualizar el estudiante',
+      })
       return
     }
     onSuccess?.(response)
-    toast.success('Estudiante actualizado correctamente')
+    Swal.fire({
+      icon: 'success',
+      title: 'Éxito',
+      text: 'Estudiante actualizado correctamente',
+    })
     redirect(`/list/students?page=${page}`)
-
   }
+
+  const handleDelete = async (id: string) => {
+
+    Swal.fire({
+      title: "¿Estás seguro?",
+      text: "No podrás revertir esto!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, eliminar!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        const response = await StudentService.deleteStudent(id);
+        if (!response.state) {
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: response.message,
+          });
+          return;
+        }
+      }
+    })
+  };
 
   const handleCancel = () => {
     redirect(`/list/students?page=${page}`)
   }
 
-  const [state, submitAction, isPending] = useActionState(handleSubmit, null)
+  const [isError, submitAction, isPending] = useActionState(handleSubmit, null)
 
+  if (isError) {
+    toast.error('Error al actualizar el estudiante')
+  }
   return (
 
     <form action={submitAction} className="flex flex-col gap-4 w-full">
@@ -106,15 +158,28 @@ const StudentForm = (
         <Button
           type="button"
           onClick={handleCancel}
-          variant="destructive"
-          className="bg-red-500 text-white rounded-md p-4 cursor-pointer"
+          variant="outline"
+          className="bg-gray-500 text-white rounded-md p-4 cursor-pointer"
           disabled={isPending}
         >
           Cancelar
         </Button>
+        {
+          ROLE === 'admin' && (
+            <Button
+              type="button"
+              onClick={() => handleDelete(data.id!)}
+              variant="destructive"
+              className="bg-red-500 text-white rounded-md p-4 cursor-pointer"
+              disabled={isPending}
+            >
+              {isPending ? 'Eliminando...' : 'Eliminar'}
+            </Button>
+          )
+        }
         <Button
           type="submit"
-          className="bg-blue-500 text-white rounded-md p-2 cursor-pointer"
+          className="bg-blue-500 text-white rounded-md p-2 hover:bg-blue-700 cursor-pointer"
           disabled={isPending}
         >
           {isPending ? 'Guardando...' : 'Guardar Cambios'}

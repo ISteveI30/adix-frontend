@@ -4,6 +4,7 @@ import { ITEMS_PER_PAGE } from "@/api/services/api"
 import Pagination from "@/components/customs/Pagination"
 import TableView, { ColumnDefinition } from "@/components/customs/TableView"
 import { Button } from "@/components/ui/button"
+import { debounce } from "lodash"
 import { EyeIcon } from "lucide-react"
 import Link from "next/link"
 import { use } from "react"
@@ -17,7 +18,7 @@ const columns: ColumnDefinition<TutorWithStudent>[] = [
   { header: "Acciones", accessor: "actions" },
 ]
 
-const TutorTable =  (
+const TutorTable = (
   props: {
     query: string;
     currentPage?: number;
@@ -40,7 +41,6 @@ const TutorTable =  (
   const filteredLastPage = query.length > 0 ? Math.ceil(filteredData.length / ITEMS_PER_PAGE) : meta.lastPage
   const dataRender = !query ? data : filteredData
 
-
   const renderRow = (item: TutorWithStudent) => {
     return (
       <tr key={item.id} className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-green-50 ">
@@ -56,13 +56,13 @@ const TutorTable =  (
         <td className="p-2 hidden md:table-cell">{item.students ? item.students.length : 0}</td>
         <td className="p-2 hidden md:table-cell">{item.observation}</td>
         <td>
-        <div className="flex items-start gap-2">
-          <Link href={`/list/tutors/${item.id}?page=${currentPage}`} title="Ver Apoderado" className="w-full">
-            <Button className="w-7 h-7 flex items-center justify-center rounded-full bg-blue-600 text-white hover:bg-blue-800 cursor-pointer">
-              <EyeIcon size={16} />
-            </Button>
-          </Link>
-        </div>
+          <div className="flex items-start gap-2">
+            <Link href={`/list/tutors/${item.id}?page=${currentPage}`} title="Ver Apoderado" className="w-full">
+              <Button className="w-7 h-7 flex items-center justify-center rounded-full bg-blue-600 text-white hover:bg-blue-800 cursor-pointer">
+                <EyeIcon size={16} />
+              </Button>
+            </Link>
+          </div>
         </td>
       </tr>
     )

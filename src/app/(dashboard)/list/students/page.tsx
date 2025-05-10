@@ -1,6 +1,7 @@
 import { Suspense } from "react";
-import StudentTable from "./studentTable";
 import Search from "@/components/forms/EnrollmentSearchForm";
+import { StudentSkeleton } from "@/components/customs/SkeletonTables";
+import StudentTable from "./studentTable";
 
 
 const StudentListPage = async (
@@ -23,7 +24,7 @@ const StudentListPage = async (
           <Search placeholder="Buscar alumno..." />
         </div>
       </div>
-      <Suspense key={query + currentPage} fallback={<div className="p-4 text-center">Cargando Lista de Alumnos...</div>}>
+      <Suspense key={query + currentPage} fallback={<StudentSkeleton />}>
         <StudentTable query={query} currentPage={currentPage} />
       </Suspense>
     </div>

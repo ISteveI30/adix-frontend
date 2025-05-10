@@ -5,9 +5,8 @@ import { AccountReceivableService } from "@/api/models/accountReceivable/account
 import PaymentStatus from "@/components/customs/status";
 import TableView, { ColumnDefinition } from "@/components/customs/TableView";
 import { Button } from "@/components/ui/button";
-import { ROLE } from "@/lib/data";
-import { formatCurrency } from "@/lib/utils";
-import { BanknoteIcon, EuroIcon, TrashIcon } from "lucide-react";
+import { formatCurrency, formatDateToISO, formatDateToLocal, formatDateToLocalFromISO } from "@/lib/utils";
+import { BanknoteIcon } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
@@ -35,7 +34,8 @@ export default function ScheduleTable({
       setLoading(true);
 
       try {
-        const data = await AccountReceivableService.listAccountReceivablesByStudent(id);
+        // const data = await AccountReceivableService.listAccountReceivablesByStudent(id);
+        const data = await AccountReceivableService.listAccountReceivablesByCodeStudent(id);
 
         if (!data || data.length === 0) {
           setDataAccount([]);
@@ -63,7 +63,6 @@ export default function ScheduleTable({
   }, [id]);
 
   const renderRow = (item: AccountReceivable) => {
-
     return (
       <tr key={item.id} className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-purple-200  cursor-pointer">
         <td className="p-3"><PaymentStatus status={item.status} /></td>
@@ -74,11 +73,11 @@ export default function ScheduleTable({
 
         <td className="p-3 flex items-center justify-center gap-2">
           {
-            item.status === "PENDIENTE" && (
+            item.status !== "PAGADO" && (
               <Link href={`/list/payments/new/${item.id}`} title="Pagar Cuenta">
                 <Button
                   title="Pagar"
-                  className="w-7 h-7 flex items-center justify-center rounded-full bg-green-400 text-white cursor-pointer"
+                  className="w-7 h-7 flex items-center justify-center rounded-full bg-red-400 text-white cursor-pointer"
                 >
                   <BanknoteIcon size={16} />
                 </Button>
@@ -86,19 +85,6 @@ export default function ScheduleTable({
             )
           }
         </td>
-{/* 
-        <td className="p-3 flex items-center justify-center gap-2">
-          {ROLE === "admin" && (
-            <Button
-              title="Eliminar"
-              // onClick={() => handleDelete(item.enrollmentId!)}
-              className="w-7 h-7 flex items-center justify-center rounded-full bg-red-500 text-white cursor-pointer"
-            >
-              <TrashIcon size={16} />
-            </Button>
-          )}
-        </td> */}
-
       </tr>
     )
   };

@@ -3,7 +3,6 @@ import Search from "@/components/forms/EnrollmentSearchForm";
 import { CreateEnrollment } from "@/components/customs/ButtonsForm";
 import EnrollmentTable from "./enrollmentTable";
 
-
 const StudentListPage = async (props: {
   searchParams?: Promise<{
     query?: string;

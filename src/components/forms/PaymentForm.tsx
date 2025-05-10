@@ -21,13 +21,16 @@ import { redirect } from "next/navigation"
 
 export function PaymentForm({ data }: { data: AccountReceivable }) {
 
+  const [isError, formAction, isPending] = useActionState(handleSubmit, null)
+  
   if (!data) {
     return <div>No hay datos</div>
   }
-  const handleSubmit = async (
+
+  async function handleSubmit (
     _: unknown,
     formData: FormData,
-  ) => {
+  ) {
     const rawData = Object.fromEntries(formData.entries())
     const result = validatePaymentSchema.safeParse({
       ...rawData,
@@ -77,8 +80,10 @@ export function PaymentForm({ data }: { data: AccountReceivable }) {
     redirect("/list/schedule/" + data.studentId)
   }
 
-  const [state, formAction, isPending] = useActionState(handleSubmit, null)
-
+  if (isError) {
+    return <div>Error al guardar el pago</div>
+  }
+  
   return (
     <form action={formAction} className="flex flex-col gap-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
