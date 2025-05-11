@@ -67,33 +67,7 @@ export default function StudentTable({
   const filteredLastPage = query.length > 0 ? Math.ceil(filteredData.length / ITEMS_PER_PAGE) : meta.lastPage;
   const renderData = query.length>0 ? filteredData.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE): dataStudent
 
-  // const handleDelete = async (id: string) => {
-
-  //   Swal.fire({
-  //     title: "¿Estás seguro?",
-  //     text: "No podrás revertir esto!",
-  //     icon: "warning",
-  //     showCancelButton: true,
-  //     confirmButtonColor: "#3085d6",
-  //     cancelButtonColor: "#d33",
-  //     confirmButtonText: "Sí, eliminar!",
-  //   }).then(async (result) => {
-  //     if (result.isConfirmed) {
-  //       const response = await StudentService.deleteStudent(id);
-  //       if (!response.state) {
-  //         Swal.fire({
-  //           icon: "error",
-  //           title: "Error",
-  //           text: response.message,
-  //         });
-  //         return;
-  //       }
-  //       // fetchData(currentPageState);
-  //     }
-  //   })
-  // };
-
-  const renderRow = (item: StudentWithTutor) => {
+   const renderRow = (item: StudentWithTutor) => {
     return (
       <tr key={item.id} className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-purple-200">
         <td className="flex items-center gap-4 p-4">
