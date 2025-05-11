@@ -1,22 +1,26 @@
 import { InterestedService } from "@/api/models/interested/interested.api"
 import InterestedForm from "@/components/forms/InterestedForm"
-import { use } from "react"
 
 interface InterestedEditPageProps {
   params: Promise<{
     id: string
   }>
+  searchParams: Promise<{
+    page?: string
+  }>;
 }
 
-const InterestedEditPage = ({ params }: InterestedEditPageProps) => {
+const InterestedEditPage = async ({ params, searchParams }: InterestedEditPageProps) => {
 
-  const { id } = use(params)
-  const dataInterested = use(InterestedService.getById(id))
+  const { id } = await params
+  const { page } = await searchParams
+
+  const dataInterested = await InterestedService.getById(id)
   return (
     <>
-      <div className="overflow-x-auto">
-        <InterestedForm dataEdit={dataInterested} type="update" />
-      </div>
+      <section className="flex flex-col gap-4 w-full p-4">
+        <InterestedForm dataEdit={dataInterested} type="update" page={Number(page)} />
+      </section>
     </>
   )
 }
