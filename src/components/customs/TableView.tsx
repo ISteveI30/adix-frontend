@@ -28,9 +28,9 @@ const TableView = <T extends { id: string }> ({
       </thead>
       <tbody>
            {data.length === 0 && (
-            <tr>
+            <tr className="text-left text-gray-500 text-sm">
               <td colSpan={columns.length} className="text-center">
-                No hay Interesados disponibles
+                No hay Datos disponibles
               </td>
             </tr>
           )} 
