@@ -1,5 +1,3 @@
-import React from 'react';
-
 export type ColumnDefinition<T extends { id: string }> =  {
   header: string;
   accessor: keyof T | 'info' | 'actions';
@@ -29,7 +27,14 @@ const TableView = <T extends { id: string }> ({
         </tr>
       </thead>
       <tbody>
-        {data.map((item) => renderRow(item))}
+           {data.length === 0 && (
+            <tr>
+              <td colSpan={columns.length} className="text-center">
+                No hay Interesados disponibles
+              </td>
+            </tr>
+          )} 
+          {data.length > 0 && data.map((item) => renderRow(item))}
       </tbody>
     </table>
   );

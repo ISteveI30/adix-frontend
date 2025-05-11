@@ -6,14 +6,14 @@ import { useUser } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
-export default  function SignInPage() {
+export default function SignInPage() {
   const { user } = useUser()
   const router = useRouter()
 
   useEffect(() => {
     const role = user?.publicMetadata.role
 
-    if (role ==='admin') 
+    if (role === 'admin')
       router.push(`/${role}`)
     else if (role === 'guest')
       router.push('/list/parents')
@@ -22,7 +22,7 @@ export default  function SignInPage() {
 
   }, [user, router])
 
-    return (
+  return (
     <div className="h-screen grid w-full flex-grow items-center bg-zinc-100 px-4 sm:justify-center">
       <SignIn.Root>
         <SignIn.Step
@@ -30,7 +30,7 @@ export default  function SignInPage() {
           className="w-full space-y-6 rounded-2xl bg-white px-4 py-10 shadow-md ring-1 ring-black/5 sm:w-96 sm:px-8"
         >
           <header className="text-center">
-           <h1 className="mt-4 text-xl font-medium tracking-tight text-zinc-950">
+            <h1 className="mt-4 text-xl font-medium tracking-tight text-zinc-950">
               Panel de Control ADIX
             </h1>
           </header>

@@ -12,7 +12,7 @@ const MENU_ITEMS = [
       {
         icon: "/student.png",
         label: "Interesado",
-        href: "/list/teachers",
+        href: "/list/interested",
         visible: [],
       },
       {
@@ -24,7 +24,7 @@ const MENU_ITEMS = [
       {
         icon: "/parent.png",
         label: "Padre",
-        href: "/list/parents",
+        href: "/list/tutors",
         visible: [],
       },
       {
@@ -33,24 +33,24 @@ const MENU_ITEMS = [
         href: "/list/enrollments",
         visible: ["admin"],
       },
-      {
-        icon: "/result.png",
-        label: "Resultados",
-        href: "/list/results",
-        visible: ["admin", "teacher", "student", "parent"],
-      },
-      {
-        icon: "/attendance.png",
-        label: "Asistencias",
-        href: "/list/attendance",
-        visible: ["admin", "teacher", "student", "parent"],
-      },
-      {
-        icon: "/calendar.png",
-        label: "Pagos",
-        href: "/list/events",
-        visible: ["admin", "teacher", "student", "parent"],
-      },
+      // {
+      //   icon: "/result.png",
+      //   label: "Resultados",
+      //   href: "/admin",
+      //   visible: ["admin", "teacher", "student", "parent"],
+      // },
+      // {
+      //   icon: "/attendance.png",
+      //   label: "Asistencias",
+      //   href: "/admin",
+      //   visible: ["admin", "teacher", "student", "parent"],
+      // },
+      // {
+      //   icon: "/calendar.png",
+      //   label: "Pagos",
+      //   href: "/admin",
+      //   visible: ["admin", "teacher", "student", "parent"],
+      // },
     ],
   },
   // {

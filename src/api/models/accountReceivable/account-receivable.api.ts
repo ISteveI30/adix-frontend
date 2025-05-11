@@ -8,14 +8,22 @@ export class AccountReceivableService {
     return data
   }
 
+  static async listAccountReceivablesByCodeStudent(codeStudent: string) {
+    const data = await fetchWrapper<AccountReceivable[]>(`/account-receivables/codeStudent/${codeStudent}`)
+    return data
+  }
+
   static async listAccountReceivables() {
     const data = await fetchWrapper<AccountReceivable[]>("/account-receivables")
     return data
- 
   }
   
-  static async createAccountReceivable(data: CreateAccountReceivable) {
-    return fetchWrapper<CreateAccountReceivable>("/account-receivables", {
+  static async getAccountReceivableById(id: string) {
+    return fetchWrapper<AccountReceivable>(`/account-receivables/${id}`)
+  }
+
+  static async createAccountReceivable(data: AccountReceivable) {
+    return await fetchWrapper<AccountReceivable>("/account-receivables", {
       method: "POST",
       body: data,
     })

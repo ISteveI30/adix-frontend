@@ -1,10 +1,7 @@
-// "use client";
-
-import { Suspense} from "react";
+import { Suspense } from "react";
 import Search from "@/components/forms/EnrollmentSearchForm";
-import  { CreateEnrollment } from "@/components/customs/ButtonsForm";
+import { CreateEnrollment } from "@/components/customs/ButtonsForm";
 import EnrollmentTable from "./enrollmentTable";
-
 
 const StudentListPage = async (props: {
   searchParams?: Promise<{
@@ -26,8 +23,8 @@ const StudentListPage = async (props: {
           <CreateEnrollment />
         </div>
       </div>
-      <Suspense key={query + currentPage} fallback={<div className="p-4 text-center">Cargando tabla...</div>}>
-        <EnrollmentTable query={query} />
+      <Suspense key={query + currentPage} fallback={<div className="p-4 text-center">Cargando Lista de Alumnos Matriculados...</div>}>
+        <EnrollmentTable query={query} currentPage={currentPage} />
       </Suspense>
     </div>
   );

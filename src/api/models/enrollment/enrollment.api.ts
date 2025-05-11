@@ -13,6 +13,11 @@ export class EnrollmentService {
     return listEnrollmente
   }
 
+  static async listEnrollmentsByPage(page: number, limit: number): Promise<EnrollmentListResponse> {
+    const listEnrollmente = await fetchWrapper<EnrollmentListResponse>(`/enrollments?page=${page}&limit=${limit}`)
+    return listEnrollmente
+  }
+
   static async createEnrollment(createEnrollmentDto: CreateEnrollmentDto) {
     return fetchWrapper<CreateEnrollmentDto>("/enrollments", {
       method: "POST",
@@ -20,12 +25,6 @@ export class EnrollmentService {
     })
   }
 
-  // static async updateEnrollment(data: Enrollment) {
-  //   return fetchWrapper<Enrollment>(`/enrollments/${data.id}`, {
-  //     method: "PUT",
-  //     body: data,
-  //   })
-  // }
   static async deleteEnrollment(id: string) {
     return fetchWrapper<Enrollment>(`/enrollments/${id}`, {
       method: "DELETE",

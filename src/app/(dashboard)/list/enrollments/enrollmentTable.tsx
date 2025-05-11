@@ -1,6 +1,8 @@
 "use client"
 
-import { EnrollmentWithStudent } from "@/api/interfaces/enrollment.interface";
+import { EnrollmentListResponse, EnrollmentWithStudent } from "@/api/interfaces/enrollment.interface";
+import { EnrollmentService } from "@/api/models/enrollment/enrollment.api";
+import { ITEMS_PER_PAGE } from "@/api/services/api";
 import Pagination from "@/components/customs/Pagination";
 import TableView, { ColumnDefinition } from "@/components/customs/TableView";
 import { Button } from "@/components/ui/button";
@@ -9,9 +11,8 @@ import { ROLE } from "@/lib/data";
 import { BadgeDollarSignIcon, CalendarDaysIcon, EyeOffIcon, Trash2Icon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect } from "react";
-
-const ITEMS_PER_PAGE = 10;
+import { useState, useEffect, useDeferredValue } from "react";
+import Swal from "sweetalert2";
 
 const columns: ColumnDefinition<EnrollmentWithStudent>[] = [
   { header: "Info", accessor: "info" },
@@ -23,26 +24,42 @@ const columns: ColumnDefinition<EnrollmentWithStudent>[] = [
 ];
 
 export default function EnrollmentTable({
-  query
+  query,
+  currentPage = 1,
 }: {
   query: string;
+  currentPage?: number;
 }) {
   const [dataEntollment, setDataEnrollment] = useState<EnrollmentWithStudent[]>([]);
   const [metaData, setMetaData] = useState({
-    lastPage: 0,
-    page: 0,
+    lastPage: 1,
+    page: 1,
     total: 0
   });
   const [loading, setLoading] = useState(true);
 
-  const fetchData = async () => {
+
+  const fetchData = async (page?: number, searchData?: boolean) => {
     try {
-      const { EnrollmentService } = await import("@/api/models/enrollment/enrollment.api");
-      const { data, meta } = await EnrollmentService.listEnrollments();
+      setLoading(true);
+
+      page = page || currentPage;
+      let response: EnrollmentListResponse = { data: [], meta: { lastPage: 1, page: 1, total: 0 } };
+
+      if (searchData) {
+        response = await EnrollmentService.listEnrollments();
+      } else {
+        response = await EnrollmentService.listEnrollmentsByPage(page, ITEMS_PER_PAGE);
+      }
+      const { data, meta }: EnrollmentListResponse = Array.isArray(response) ? response[0] : response;
 
       if (!data || data.length === 0) {
         setDataEnrollment([]);
-        setMetaData(meta);
+        setMetaData({
+          lastPage: 1,
+          page: 1,
+          total: 0
+        });
         console.info("No se encontraron datos de matrícula.");
         return;
       }
@@ -62,44 +79,49 @@ export default function EnrollmentTable({
       setDataEnrollment(transformed);
       setMetaData(meta);
     } catch (error) {
-      setDataEnrollment([]);
-      setMetaData({ lastPage: 0, page: 0, total: 0 });
       console.error("Error al obtener datos de matrícula:", error);
     } finally {
       setLoading(false);
     }
   };
-
+  
   useEffect(() => {
-    fetchData();
-  }, []);
-
-  const handleDelete = async (id: string) => {
-    if (confirm("¿Estás seguro de que deseas eliminar esta matrícula?")) {
-      try {
-        const { EnrollmentService } = await import("@/api/models/enrollment/enrollment.api");
-        await EnrollmentService.deleteEnrollment(id);
-        setDataEnrollment(prev => prev.filter(item => item.id !== id));
-      } catch (error) {
-        console.error("Error al eliminar la matrícula:", error);
-      }finally {
-        fetchData();
-      }
+    if (query) {
+      fetchData(1, true);
+    } else {
+      fetchData(currentPage, false);
     }
+  }, [query, currentPage]);
+
+  async function handleDelete(id: string) {
+    Swal.fire({
+          title: "¿Está seguro?",
+          text: "No podrás revertir esto!",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#3085d6",
+          cancelButtonColor: "#d33",
+          confirmButtonText: "Sí, eliminar!",
+        }).then(async (result) => {
+          if (result.isConfirmed) {
+            await EnrollmentService.deleteEnrollment(id);
+            setDataEnrollment(prev => prev.filter(item => item.id !== id));
+            Swal.fire("¡Anulado!",`Matrícula Eliminada`, "success");
+          }
+        });
   };
 
-  const filteredData = dataEntollment.filter((student) =>
-    `${student.studentName} ${student.codeStudent}`.toLowerCase().includes(query.toLowerCase())
-  );
+  const filteredData = query
+    ? dataEntollment.filter((student) =>
+      `${student.studentName} ${student.codeStudent}`.toLowerCase().includes(query.toLowerCase())
+    )
+    : dataEntollment;
 
-  const totalPages = Math.ceil(metaData.total / ITEMS_PER_PAGE);
-  const startIndex = (metaData.page - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentItems = filteredData.slice(startIndex, endIndex);
+  const deferredData = useDeferredValue(filteredData)
 
   const renderRow = (item: EnrollmentWithStudent) => {
     return (
-      <tr key={item.id} className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-userPurpleLight">
+      <tr key={item.enrollmentId} className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-purple-200">
         <td className="flex items-center gap-4 p-4">
           <Image
             src={item.studentImage}
@@ -119,18 +141,14 @@ export default function EnrollmentTable({
         <td className="hidden md:table-cell">{item.endDate}</td>
         <td>
           <div className="flex items-center gap-2">
-            <Link href={`/list/enrollments/${item.id}`} title="Ver Detalles">
-              <button className="w-7 h-7 flex items-center justify-center rounded-full bg-blue-500 text-white cursor-pointer">
-                <EyeOffIcon size={16} />
-              </button>
-            </Link>
-            <Link href={`/list/schedule/${item.id}`} title="Ver Cronograma">
-              <button className="w-7 h-7 flex items-center justify-center rounded-full bg-green-500 text-white cursor-pointer">
+  
+            <Link href={`/list/schedule/${item.codeStudent}`} title="Ver Cronograma">
+              <button className="w-7 h-7 flex items-center justify-center rounded-full bg-yellow-500 text-white cursor-pointer">
                 <CalendarDaysIcon size={16} />
               </button>
             </Link>
             <Link href={`/list/payments/${item.id}`} title="Ver Pagos">
-              <Button className="w-7 h-7 flex items-center justify-center rounded-full bg-yellow-500 text-white cursor-pointer">
+              <Button className="w-7 h-7 flex items-center justify-center rounded-full bg-green-500 text-white cursor-pointer">
                 <BadgeDollarSignIcon size={16} />
               </Button>
             </Link>
@@ -150,8 +168,7 @@ export default function EnrollmentTable({
   };
 
   if (loading) {
-    // return <Skeleton className="h-10 w-full bg-amber-300" />;
-    return <div>Cargando...</div>;
+    return <div>Cargando Lista Estudiantes matriculados...</div>;
   }
 
   return (
@@ -159,11 +176,15 @@ export default function EnrollmentTable({
       <TableView
         columns={columns}
         renderRow={renderRow}
-        data={currentItems}
+        data={deferredData}
       />
-      <div className="mt-5 flex w-full justify-center">
-        <Pagination totalPages={totalPages} />
-      </div>
+      {metaData.total > ITEMS_PER_PAGE && (
+        <div className="mt-5 flex w-full justify-center">
+          <Pagination
+            totalPages={metaData.lastPage}
+          />
+        </div>
+      )}
     </>
   );
 }

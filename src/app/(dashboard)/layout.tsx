@@ -2,6 +2,7 @@ import Menu from "@/components/customs/Menu";
 import Navbar from "@/components/customs/Navbar";
 import { Toaster } from "@/components/ui/sonner"
 import { cache } from 'react';
+export const experimental_ppr = true;
 
 const CachedNavbar = cache(() => <Navbar />);
 const CachedMenu = cache(() => <Menu />);
