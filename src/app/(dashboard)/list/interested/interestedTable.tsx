@@ -28,11 +28,11 @@ const InterestedTable = (
 
   const responseAll: InterestedListResponse = use(InterestedService.getAll())
   const responseByPage: InterestedListResponse = use(InterestedService.getByPage(currentPage, ITEMS_PER_PAGE))
-  
+
   const filteredData = query.length > 0
     ? responseAll.data.filter((interested) => `${interested.firstName} ${interested.lastName} ${interested.email}`.toLowerCase().includes(query.toLowerCase()))
     : []
-    
+
   const filteredLastPage = query.length > 0 ? Math.ceil(filteredData.length / ITEMS_PER_PAGE) : responseAll.meta.lastPage
   const dataRender = !query ? responseByPage.data : filteredData
 
@@ -65,11 +65,13 @@ const InterestedTable = (
         renderRow={renderRow}
         data={dataRender}
       />
-      <div className="flex flex-col items-center justify-between">
-        <Pagination
-          totalPages={filteredLastPage}
-        />
-      </div>
+      {responseByPage.meta.total > ITEMS_PER_PAGE && (
+        <div className="mt-5 flex w-full justify-center">
+          <Pagination
+            totalPages={filteredLastPage}
+          />
+        </div>
+      )}
     </>
   )
 }
