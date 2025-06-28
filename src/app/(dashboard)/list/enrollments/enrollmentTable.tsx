@@ -76,7 +76,7 @@ export default function EnrollmentTable({
         endDate: new Date(item.endDate).toLocaleDateString(),
       }));
 
-      setDataEnrollment(transformed);
+      setDataEnrollment(transformed); 
       setMetaData(meta);
     } catch (error) {
       console.error("Error al obtener datos de matrícula:", error);
@@ -125,7 +125,7 @@ export default function EnrollmentTable({
         <td className="flex items-center gap-4 p-4">
           <Image
             src={item.studentImage}
-            alt={`Foto de ${item.studentName}`}
+            alt={`Foto de ${item.studentName}`} 
             width={40}
             height={40}
             className="md:hidden xl:block w-10 h-10 rounded-full object-cover"

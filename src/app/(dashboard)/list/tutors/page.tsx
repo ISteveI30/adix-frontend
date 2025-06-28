@@ -6,7 +6,7 @@ import { TutorSkeleton } from '@/components/customs/SkeletonTables'
 interface TutorListPageProps {
   searchParams?: Promise<{ query?: string, page?: string }>
 }
-
+ 
 const TutorListPage = (
   props: TutorListPageProps
 ) => {

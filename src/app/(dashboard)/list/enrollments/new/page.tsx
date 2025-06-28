@@ -358,7 +358,7 @@ export default function EnrollmentForm() {
               className={`flex-1 py-2 font-medium ${formStep === "student" ? "text-primary border-b-2 border-primary" : "text-muted-foreground"}`}
               onClick={() => setFormStep("student")}
             >
-              Datos del Estudiante
+              Datos del Estudiante 
             </button>
             <button
               type="button"
@@ -371,12 +371,12 @@ export default function EnrollmentForm() {
           </div>
           {formStep === "student" ? (
             <div className="space-y-2">
-              <TutorStudentForm
+              <TutorStudentForm 
                 onSave={handleTutorStudentSave}
                 initialData={tutorStudentData ? showData(tutorStudentData) : undefined}
                 onCancel={() => resetForm()}
               />
-              <div className="flex justify-end pt-4">
+              <div className="flex justify-end pt-4"> 
                 <Button
                   type="button"
                   variant="outline"

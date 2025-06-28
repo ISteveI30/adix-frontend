@@ -15,7 +15,7 @@ const InterestedForm = (
     page?: number
     type?: 'create' | 'update'
   }
-) => {
+) => { 
 
   const currentPage = props.page || 1
   const actionType = props.type || 'create'

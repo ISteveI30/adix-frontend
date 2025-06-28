@@ -4,8 +4,7 @@ import { ITEMS_PER_PAGE } from "@/api/services/api"
 import Pagination from "@/components/customs/Pagination"
 import TableView, { ColumnDefinition } from "@/components/customs/TableView"
 import { Button } from "@/components/ui/button"
-import { debounce } from "lodash"
-import { EyeIcon } from "lucide-react"
+import { Pencil } from "lucide-react"
 import Link from "next/link"
 import { use } from "react"
 
@@ -57,9 +56,11 @@ const TutorTable = (
         <td className="p-2 hidden md:table-cell">{item.observation}</td>
         <td>
           <div className="flex items-start gap-2">
-            <Link href={`/list/tutors/${item.id}?page=${currentPage}`} title="Ver Apoderado" className="w-full">
-              <Button className="w-7 h-7 flex items-center justify-center rounded-full bg-blue-600 text-white hover:bg-blue-800 cursor-pointer">
-                <EyeIcon size={16} />
+            <Link href={`/list/tutors/${item.id}?page=${currentPage}`} className="w-full">
+              <Button 
+                title="Editar Apoderado"
+                className="w-7 h-7 flex items-center justify-center rounded-full bg-blue-600 text-white hover:bg-blue-800 cursor-pointer">
+                <Pencil size={16} />
               </Button>
             </Link>
           </div>

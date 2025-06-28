@@ -9,7 +9,7 @@ const StudentListPage = async (
     searchParams?: Promise<{
       query?: string;
       page?: string;
-    }>,
+    }>, 
   } 
 ) => {
   const searchParams = await props.searchParams;

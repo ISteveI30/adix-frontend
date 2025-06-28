@@ -70,7 +70,7 @@ type FormField = {
 
 const TutorStudentForm: FC<TutorStudentFormProps> = ({ onSave, initialData, onCancel }: TutorStudentFormProps) => {
 
-   const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: initialData || {},
   });
@@ -144,7 +144,7 @@ const TutorStudentForm: FC<TutorStudentFormProps> = ({ onSave, initialData, onCa
     try {
       if (initialData) return
       const { dni } = watch();
-      const {available, tutor} = await TutorService.checkDni(dni);
+      const { available, tutor } = await TutorService.checkDni(dni);
 
       if (available && !initialData) {
         toast.info("No se encontró el tutor, se puede crear uno nuevo.");

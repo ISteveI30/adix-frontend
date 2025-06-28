@@ -53,7 +53,7 @@ export async function fetchWrapper<TResponse = void, TBody = unknown>(
 
   try {
     const { method = 'GET', body, headers = {}, ...restOptions } = options;
-
+   
     const response = await fetch(`${API_URL}${endpoint}`, {
       method,
       headers: {

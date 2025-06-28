@@ -1,5 +1,5 @@
 import fetchWrapper from "@/api/services/api";
-import { Student, StudentListResponse } from "@/api/interfaces/student.interface";
+import { Student,StudentAttendance, StudentListResponse } from "@/api/interfaces/student.interface";
 
 export class StudentService {
 
@@ -18,12 +18,12 @@ export class StudentService {
     return response
   }
 
-   static async searchStudents(searchTerm: string): Promise<Student[]> {
+  static async searchStudents(searchTerm: string): Promise<Student[]> {
     return fetchWrapper<Student[]>(`/students/findStudentByName?query=${encodeURIComponent(searchTerm)}`)
   }
 
   //Guardar un estudiante
-  static async saveStudent(student:Student): Promise<Student> {
+  static async saveStudent(student: Student): Promise<Student> {
     student.birthday = student.birthday ? new Date(student.birthday).toISOString() : undefined
     return await fetchWrapper<Student>(`/students`, {
       method: "POST",
@@ -32,7 +32,7 @@ export class StudentService {
   }
   //Actualizar un estudiante
   static async updateStudent(student: Student): Promise<Student> {
-    const { id, ...studentData } = student 
+    const { id, ...studentData } = student
     studentData.birthday = student.birthday ? new Date(student.birthday).toISOString() : undefined
     return await fetchWrapper<Student>(`/students/${id}`, {
       method: "PATCH",
@@ -41,15 +41,19 @@ export class StudentService {
   }
 
   //Eliminar un estudiante, retorna el mensaje de la API
-  static async deleteStudent(id: string): Promise<{ message: string, state:boolean }> {
-    const response = await fetchWrapper<{ message: string, state:boolean }>(`/students/${id}`, {
+  static async deleteStudent(id: string): Promise<{ message: string, state: boolean }> {
+    const response = await fetchWrapper<{ message: string, state: boolean }>(`/students/${id}`, {
       method: "DELETE",
     })
     return { message: response.message, state: response.state }
   }
 
-  
+
   static async getStudentById(id: string): Promise<Student> {
     return fetchWrapper<Student>(`/students/${id}`)
+  }
+
+  static async getStudentByDni(dni: string): Promise<StudentAttendance> {
+    return fetchWrapper<StudentAttendance>(`/students/findByDni/${encodeURIComponent(dni)}`);
   }
 }

@@ -10,7 +10,7 @@ type InputFieldProps = {
   inputProps?: React.InputHTMLAttributes<HTMLInputElement>;
   className?: string;
 };
-
+ 
 const InputField = ({
   label,
   type = "text",

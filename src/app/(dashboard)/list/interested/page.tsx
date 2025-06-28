@@ -1,8 +1,11 @@
+"use client"
 import { TutorSkeleton } from '@/components/customs/SkeletonTables';
 import Search from '@/components/forms/EnrollmentSearchForm';
-import { Suspense, use } from 'react'
+import { Suspense, use, useEffect, useState } from 'react'
 import InterestedTable from './interestedTable';
 import { CreateInterested } from '@/components/customs/ButtonsForm';
+import { InterestedSchema } from './validate.interested';
+import { InterestedService } from '@/api/models/interested/interested.api';
 
 
 interface InterestedPageProps {
@@ -18,6 +21,16 @@ const InterestedPage = (props: InterestedPageProps) => {
   const query = searchParams?.query || ''
   const currentPage = Number(searchParams?.page) || 1
   
+  useEffect(()=>{
+    const cleanup = async () => {
+      try {
+        await InterestedService.deleteOld()
+      } catch (err) {
+        console.error('Error borrando o recargando interesados:', err)
+      }
+    }
+    cleanup()
+  },[])
 
   return (
     <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">

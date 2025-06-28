@@ -1,57 +1,87 @@
+import { 
+  Home, 
+  ClipboardPenLine, 
+  ChartColumnIncreasing,
+  Clock,
+  GraduationCap,
+  Hourglass,
+  UserSearch,
+  Users,
+  UserRoundPen,
+  IdCard 
+} from 'lucide-react'
 
-const MENU_ITEMS = [
+export interface MenuItem {
+  icon: React.ComponentType<any>
+  label: string
+  href: string
+  visible: string[]
+}
+
+export interface MenuGroup {
+  title: string
+  items: MenuItem[]
+}
+const MENU_ITEMS: MenuGroup[] = [
   {
     title: "MENU",
     items: [
       {
-        icon: "/home.png",
+        icon: Home,
         label: "Home",
         href: "/admin",
         visible: ["admin", "student", "parent"],
       },
       {
-        icon: "/student.png",
+        icon: UserSearch,
         label: "Interesado",
         href: "/list/interested",
         visible: [],
       },
       {
-        icon: "/teacher.png",
+        icon: UserRoundPen,
         label: "Alumno",
         href: "/list/students",
         visible: [],
       },
       {
-        icon: "/parent.png",
+        icon: Users,
         label: "Padre",
         href: "/list/tutors",
         visible: [],
       },
       {
-        icon: "/subject.png",
+        icon: GraduationCap,
         label: "Matrícula",
         href: "/list/enrollments",
         visible: ["admin"],
       },
-      // {
-      //   icon: "/result.png",
-      //   label: "Resultados",
-      //   href: "/admin",
-      //   visible: ["admin", "teacher", "student", "parent"],
-      // },
-      // {
-      //   icon: "/attendance.png",
-      //   label: "Asistencias",
-      //   href: "/admin",
-      //   visible: ["admin", "teacher", "student", "parent"],
-      // },
-      // {
-      //   icon: "/calendar.png",
-      //   label: "Pagos",
-      //   href: "/admin",
-      //   visible: ["admin", "teacher", "student", "parent"],
-      // },
-    ],
+      {
+        icon: Clock,
+        label: "Asistencias",
+        href: "/list/attendance",
+        visible: [],
+      },
+      {
+        icon: ClipboardPenLine,
+        label: "Examens",
+        href: "/list/exam",
+        visible: ["admin"],
+        //visible: ["admin", "teacher", "student", "parent"],
+      },
+      {
+        icon: IdCard,
+        label: "Notas",
+        href: "/list/result",
+        visible: ["admin"],
+      },
+         {
+        icon: ChartColumnIncreasing,
+        label: "Reportes",
+        href: "/list/reports",
+        visible: ["admin"],
+      },
+    ]
   },
   // {
   //   title: "OTHER",

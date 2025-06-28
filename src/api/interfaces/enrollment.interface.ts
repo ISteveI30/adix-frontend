@@ -141,3 +141,8 @@ export interface ApiErrorDetails {
   isConflict?: boolean;
   [key: string]: unknown;
 }
+
+export interface EnrollmentDetail {
+  cycle: { name: string;};
+  admission: { name: string;};
+}

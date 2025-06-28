@@ -4,7 +4,7 @@ import { ITEMS_PER_PAGE } from "@/api/services/api";
 import Pagination from "@/components/customs/Pagination";
 import TableView, { ColumnDefinition } from "@/components/customs/TableView";
 import { Button } from "@/components/ui/button";
-import {  EyeIcon,  } from "lucide-react";
+import {  Pencil,  } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import {  use } from "react";
@@ -90,7 +90,7 @@ export default function StudentTable({
           <div className="flex items-start gap-2">
             <Link href={`/list/students/edit/${item.id}?page=${currentPage}`} title="Editar Estudiante">
             <Button className="w-7 h-7 flex items-center justify-center rounded-full bg-blue-600 text-white hover:bg-blue-800 cursor-pointer">
-              <EyeIcon size={16} />
+              <Pencil size={16} />
             </Button>
             </Link>
           </div>

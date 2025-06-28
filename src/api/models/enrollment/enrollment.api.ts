@@ -29,5 +29,5 @@ export class EnrollmentService {
     return fetchWrapper<Enrollment>(`/enrollments/${id}`, {
       method: "DELETE",
     })
-  }
+  } 
 }

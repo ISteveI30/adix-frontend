@@ -1,6 +1,6 @@
 import { InterestedColumns, InterestedListResponse } from "@/api/interfaces/interested.interface";
 import { fetchWrapper } from "@/api/services/api";
-import {InterestedSchema } from "@/app/(dashboard)/list/interested/validate.interested";
+import { InterestedSchema } from "@/app/(dashboard)/list/interested/validate.interested";
 
 export class InterestedService {
 
@@ -13,7 +13,7 @@ export class InterestedService {
     const response = await fetchWrapper<InterestedListResponse>(`/interested?page=${page}&limit=${limit}`);
     return response
   }
-  static async create(interested: Omit<InterestedSchema,"id">): Promise<InterestedSchema> {
+  static async create(interested: Omit<InterestedSchema, "id">): Promise<InterestedSchema> {
     const response = await fetchWrapper<InterestedSchema>(`/interested`, {
       method: "POST",
       body: interested,
@@ -26,6 +26,13 @@ export class InterestedService {
     const response = await fetchWrapper<InterestedSchema>(`/interested/${id}`, {
       method: "PATCH",
       body: rest,
+    });
+    return response
+  }
+
+  static async deleteOld(): Promise<InterestedSchema> {
+    const response = await fetchWrapper<InterestedSchema>(`/interested/old`, {
+      method: "DELETE",
     });
     return response
   }

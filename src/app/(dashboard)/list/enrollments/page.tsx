@@ -8,7 +8,7 @@ const StudentListPage = async (props: {
     query?: string;
     page?: string;
   }>;
-}) => {
+}) => { 
 
   const searchParams = await props.searchParams;
   const query = searchParams?.query || '';

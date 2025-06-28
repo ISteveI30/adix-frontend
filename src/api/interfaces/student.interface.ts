@@ -1,6 +1,7 @@
 // types/student.ts
 
 import { MetaData } from "../services/api";
+import { EnrollmentDetail } from "./enrollment.interface";
 import { Tutor } from "./tutor.interface";
 
 
@@ -54,4 +55,11 @@ export interface StudentWithTutor{
 export interface StudentListResponse {
   meta: MetaData;
   data: StudentList[];
+}
+
+export interface StudentAttendance {
+  id: string;
+  firstName: string;
+  lastName: string;
+  enrollments: EnrollmentDetail[];
 }

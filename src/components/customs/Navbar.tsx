@@ -12,7 +12,7 @@ const Navbar = async () => {
   return (
     <section className='flex items-center justify-between p-2'>
       <Link href="/" className="flex items-center justify-start p-2 gap-2">
-        <Image src='/logo1.png' alt="Logotipo academia" width={100} height={20} priority={true} />
+        <Image src='/logo1.png' alt="Logotipo academia" width={80} height={10} priority={true} />
       </Link>
       <div className='flex items-center gap-6 justify-end w-full'>
         <div className='hidden lg:flex flex-col'>
