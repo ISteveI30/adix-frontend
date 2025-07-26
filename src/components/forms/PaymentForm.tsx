@@ -151,7 +151,7 @@ export function PaymentForm({ data }: { data: AccountReceivable }) {
           inputProps={{
             min: 0,
             step: 0.01,
-            max: data.pendingBalance,
+            //max: data.pendingBalance,
             pattern: "[0-9]*",
           }}
         />

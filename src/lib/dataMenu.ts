@@ -1,6 +1,6 @@
-import { 
-  Home, 
-  ClipboardPenLine, 
+import {
+  Home,
+  ClipboardPenLine,
   ChartColumnIncreasing,
   Clock,
   GraduationCap,
@@ -8,7 +8,7 @@ import {
   UserSearch,
   Users,
   UserRoundPen,
-  IdCard 
+  IdCard
 } from 'lucide-react'
 
 export interface MenuItem {
@@ -33,10 +33,29 @@ const MENU_ITEMS: MenuGroup[] = [
         visible: ["admin", "student", "parent"],
       },
       {
-        icon: UserSearch,
-        label: "Interesado",
-        href: "/list/interested",
+        icon: GraduationCap,
+        label: "Matrícula",
+        href: "/list/enrollments",
+        visible: ["admin"],
+      },
+      {
+        icon: Clock,
+        label: "Asistencias",
+        href: "/list/attendance",
         visible: [],
+      },
+      {
+        icon: ClipboardPenLine,
+        label: "Examenes",
+        href: "/list/exam",
+        visible: ["admin"],
+        //visible: ["admin", "teacher", "student", "parent"],
+      },
+      {
+        icon: IdCard,
+        label: "Notas",
+        href: "/list/result",
+        visible: ["admin"],
       },
       {
         icon: UserRoundPen,
@@ -51,31 +70,12 @@ const MENU_ITEMS: MenuGroup[] = [
         visible: [],
       },
       {
-        icon: GraduationCap,
-        label: "Matrícula",
-        href: "/list/enrollments",
-        visible: ["admin"],
-      },
-      {
-        icon: Clock,
-        label: "Asistencias",
-        href: "/list/attendance",
+        icon: UserSearch,
+        label: "Interesado",
+        href: "/list/interested",
         visible: [],
       },
       {
-        icon: ClipboardPenLine,
-        label: "Examens",
-        href: "/list/exam",
-        visible: ["admin"],
-        //visible: ["admin", "teacher", "student", "parent"],
-      },
-      {
-        icon: IdCard,
-        label: "Notas",
-        href: "/list/result",
-        visible: ["admin"],
-      },
-         {
         icon: ChartColumnIncreasing,
         label: "Reportes",
         href: "/list/reports",

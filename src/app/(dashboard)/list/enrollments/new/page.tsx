@@ -254,9 +254,11 @@ export default function EnrollmentForm() {
     studentId: string
   ): CreateEnrollmentDto => {
     const { areaId, ...dataEnrollment } = formData;
+    //const saldo = formData.totalCost - formData.initialPayment - formData.discounts;
     return {
       ...dataEnrollment,
-      studentId
+      studentId,
+      //totalCost: saldo
     };
   };
 

@@ -13,6 +13,14 @@ export default clerkMiddleware(async (auth: ClerkMiddlewareAuth, req: NextReques
 
   const role = (sessionClaims?.metadata as { role: string })?.role;
 
+  //console.log(sessionClaims)
+
+  if(!sessionClaims){
+     return NextResponse.next()
+  }
+
+  //console.log("desde el middle",role)
+
   for (const { matcher, allowedRoles } of matchers) {
     if (matcher(req) && !allowedRoles.includes(role!)) {
       return NextResponse.redirect(new URL(`/${role}`, req.url));
