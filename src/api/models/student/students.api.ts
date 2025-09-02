@@ -1,16 +1,19 @@
 import fetchWrapper from "@/api/services/api";
-import { Student,StudentAttendance, StudentListResponse } from "@/api/interfaces/student.interface";
+import { Student, StudentAttendance, StudentListResponse } from "@/api/interfaces/student.interface";
 
 export class StudentService {
 
   //Listar estudiantes
-  static async listStudents(): Promise<StudentListResponse[]> {
-    const response = await fetchWrapper<StudentListResponse[]>(`/students`)
-    return response
+  static async listStudents(): Promise<StudentListResponse> {
+    return await fetchWrapper<StudentListResponse>(`/students`, {
+      method: "GET",
+    });
   }
   //Listar estudiantes por pagina
   static async listStudentsByPage(page: number, limit: number): Promise<{ data: Student[]; meta: { lastPage: number; page: number; total: number } }> {
-    return fetchWrapper<{ data: Student[]; meta: { lastPage: number; page: number; total: number } }>(`/students?page=${page}&limit=${limit}`)
+       return await fetchWrapper<StudentListResponse>(`/students?page=${page}&limit=${limit}`, {
+      method: "GET",
+    });
   }
 
   static async StudentByPage(page: number, limit: number): Promise<StudentListResponse> {
@@ -56,4 +59,12 @@ export class StudentService {
   static async getStudentByDni(dni: string): Promise<StudentAttendance> {
     return fetchWrapper<StudentAttendance>(`/students/findByDni/${encodeURIComponent(dni)}`);
   }
+
+  static async getStudentByNameFull(query: string): Promise<StudentAttendance[]> {
+    const data = await fetchWrapper<StudentAttendance[] | undefined>(
+      `/students/findStudentByNameFull?query=${encodeURIComponent(query)}`
+    );
+    return Array.isArray(data) ? data : []; // <- garantiza []
+  }
+
 }

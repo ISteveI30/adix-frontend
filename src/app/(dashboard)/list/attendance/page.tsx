@@ -19,7 +19,7 @@ const AttendancePage: React.FC<AttendancePageProps> = ({ /*searchParams*/ }) => 
       const result = await AttendanceService.create(attendance);  
       //toast.success("Asistencia registrada con éxito");
       return result;
-    } catch (err) {
+    } catch (err) { 
       //console.error(err); 
       //toast.error("No se pudo registrar la asistencia");
       throw err; 

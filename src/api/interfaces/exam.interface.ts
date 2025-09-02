@@ -36,3 +36,19 @@ export interface ExamDetail {
 }
 
 
+export interface ExamSummary {
+  id: string;
+  title: string;
+  modality: 'PRESENCIAL' | 'VIRTUAL' | 'HIBRIDO';
+  assigned: number;
+}
+
+export type RosterRow = {
+  personKey: string;            
+  detailId?: string;             
+  firstName: string;
+  lastName: string;
+  type: "Matriculado" | "Externo";
+  careerName?: string;
+  score?: number | null;
+};

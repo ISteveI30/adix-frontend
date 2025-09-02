@@ -48,4 +48,7 @@ export class InterestedService {
     const response = await fetchWrapper<InterestedColumns>(`/interested/${id}`);
     return response
   }
+
+
+  
 }

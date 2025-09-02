@@ -53,7 +53,7 @@ export async function fetchWrapper<TResponse = void, TBody = unknown>(
 
   try {
     const { method = 'GET', body, headers = {}, ...restOptions } = options;
-   
+
     const response = await fetch(`${API_URL}${endpoint}`, {
       method,
       headers: {
@@ -98,11 +98,19 @@ async function parseErrorResponse(response: Response): Promise<ApiError> {
 // Helper para parsear respuestas exitosas
 async function parseSuccessResponse<T>(response: Response): Promise<T> {
   try {
-    // Para respuestas sin contenido (como 204 No Content)
+    // Para respuestas sin contenido (204 No Content)
     if (response.status === 204) {
       return undefined as unknown as T;
     }
-    return (await response.json()) as T;
+
+    // Para respuestas vacías (ej: DELETE devuelve 200 vacío o 201 sin body)
+    const text = await response.text();
+    if (!text) {
+      return undefined as unknown as T;
+    }
+
+    // Intentar parsear JSON solo si hay contenido
+    return JSON.parse(text) as T;
   } catch (e) {
     console.error('Error parsing successful response:', e);
     return undefined as unknown as T;

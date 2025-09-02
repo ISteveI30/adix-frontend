@@ -61,5 +61,6 @@ export interface StudentAttendance {
   id: string;
   firstName: string;
   lastName: string;
+  dni?: string;
   enrollments: EnrollmentDetail[];
 }

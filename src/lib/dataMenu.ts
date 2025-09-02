@@ -51,12 +51,12 @@ const MENU_ITEMS: MenuGroup[] = [
         visible: ["admin"],
         //visible: ["admin", "teacher", "student", "parent"],
       },
-      {
-        icon: IdCard,
-        label: "Notas",
-        href: "/list/result",
-        visible: ["admin"],
-      },
+      //{
+      //  icon: IdCard,
+      //  label: "Notas",
+      //  href: "/list/result",
+      //  visible: ["admin"],
+      //},
       {
         icon: UserRoundPen,
         label: "Alumno",
@@ -71,7 +71,7 @@ const MENU_ITEMS: MenuGroup[] = [
       },
       {
         icon: UserSearch,
-        label: "Interesado",
+        label: "Interesado/Externo",
         href: "/list/interested",
         visible: [],
       },

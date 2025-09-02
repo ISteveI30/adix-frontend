@@ -16,7 +16,7 @@ const Search = ({ placeholder }: { placeholder: string }) => {
       const params = new URLSearchParams(searchParams);
       if (value === "" || value === undefined || value === null || !value) {
         params.delete("query");
-      } else {
+      } else { 
         params.set("query", value);
       }
       params.delete("page");
