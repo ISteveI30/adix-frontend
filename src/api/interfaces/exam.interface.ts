@@ -30,9 +30,13 @@ export interface ExamDetail {
     examId: string;
     studentId?: string;
     externalId?: string;
-    score?: number;
+    //score?: number;
+    goodAnswers?: number | null; 
+    wrongAnswers?: number | null;
+    totalScore?: number | null;  
+
     status?: string;
-    registered: string;  // ISO-8601
+    registered: string;  
 }
 
 
@@ -49,6 +53,10 @@ export type RosterRow = {
   firstName: string;
   lastName: string;
   type: "Matriculado" | "Externo";
+  //careerName?: string;
+  //score?: number | null;
   careerName?: string;
-  score?: number | null;
+  goodAnswers?: number | null;
+  wrongAnswers?: number | null;
+  totalScore?: number | null;
 };

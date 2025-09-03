@@ -216,8 +216,8 @@ const AttendanceForm: FC<AttendanceFormProps> = ({ onSave }) => {
       {/* Título + acciones de cabecera */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          {/*<Button type="button" variant="outline">Editar horarios</Button>*/}
-          {/*<Button type="button" variant="outline">Justificar tardanzas</Button>*/}
+          <Button type="button" variant="outline">Editar horarios</Button>
+          <Button type="button" variant="outline">Justificar tardanzas</Button>
         </div>
       </div>
       {/*<div className="h-px w-full bg-gray-200" />*/}

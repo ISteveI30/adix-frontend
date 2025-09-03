@@ -1,8 +1,13 @@
-import { Exam } from "@/api/interfaces/exam.interface";
+import { Exam, RosterRow } from "@/api/interfaces/exam.interface";
 import { fetchWrapper } from "@/api/services/api";
 import { ExamSummary } from '@/api/interfaces/exam.interface';
 
-export type ScoreRowPayload = { detailId: string; score: number | null };
+export type ScoreRowPayload = {
+  detailId: string;
+  goodAnswers?: number | null;
+  wrongAnswers?: number | null;
+  totalScore?: number | null;
+};
 
 export class ExamService {
 
@@ -20,7 +25,7 @@ export class ExamService {
   static async getById(id: string): Promise<Exam> {
     return await fetchWrapper<Exam>(`/exam/${id}`, { method: "GET" });
   }
-  static async getRoster(examId: string) {
+  static async getRoster(examId: string): Promise<RosterRow[]>  {
     return await fetchWrapper(`/exam/${examId}/roster`);
   }
 
@@ -38,56 +43,34 @@ export class ExamService {
     });
   }
 
+  static async addParticipants(examId: string, payload: { studentIds: string[]; interestedIds: string[] }) {
+    return await fetchWrapper(`/exam/${examId}/participants/add`, { method: "POST", body: payload });
+  }
+  static async removeParticipants(examId: string, payload: { studentIds: string[]; interestedIds: string[] }) {
+    return await fetchWrapper(`/exam/${examId}/participants/remove`, { method: "POST", body: payload });
+  }
+
+
   static async updateScores(examId: string, rows: ScoreRowPayload[]): Promise<void> {
-    await fetchWrapper<void>(`/exam/${examId}/scores`, {
-      method: "PATCH",
-      body: { rows }, 
-    });
+    await fetchWrapper<void>(`/exam/${examId}/scores`, { method: "PATCH", body: { rows } });
   }
 
-
-
-  static async saveScores(
-    examId: string,
-    rows: { detailId: string; score: number | null }[],
-  ) {
-    return await fetchWrapper(`/exam/${examId}/scores`, {
-      method: "PATCH",
-      body: { rows },
-    });
-  }
   static async update(id: string, data: Partial<Exam>): Promise<Exam> {
-    return await fetchWrapper<Exam>(`/exam/${id}`, {
-      method: "PATCH",
-      body: data,
-    });
+    return await fetchWrapper<Exam>(`/exam/${id}`, { method: "PATCH", body: data });
   }
 
   static async delete(id: string): Promise<void> {
-    return await fetchWrapper<void>(`/exam/${id}`, { method: "DELETE" });
+    await fetchWrapper<void>(`/exam/${id}`, { method: "DELETE" });
   }
 
   static async createWithDetails(payload: {
-    title: string;
-    modality: string;
-    type: string;
-    cycleId: string;
-    studentIds?: string[];
-    interestedIds?: string[];
+    title: string; modality: string; type: string; cycleId: string;
+    studentIds?: string[]; interestedIds?: string[];
   }) {
-    return await fetchWrapper<{
-      exam: Exam;
-      createdStudents: number;
-      createdInterested: number;
-    }>("/exam/create-with-details", {
-      method: "POST",
-      body: payload,
-    });
+    return await fetchWrapper(`/exam/create-with-details`, { method: "POST", body: payload });
   }
 
-
-
-  static async getSummary() {
+  static async getSummary(): Promise<ExamSummary[]> {
     return await fetchWrapper('/exam/summary', { method: 'GET' });
   }
 }
