@@ -18,6 +18,7 @@ import Swal from "sweetalert2";
 
 import { useDebouncedCallback } from "use-debounce";
 import { Loader2, Search as SearchIcon, XCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   dni: z.string().length(8, "El DNI debe tener exactamente 8 caracteres"),
@@ -210,14 +211,20 @@ const AttendanceForm: FC<AttendanceFormProps> = ({ onSave }) => {
     setSuggestions([]);
     setShowSuggestions(false);
   };
-
+  const router = useRouter();   
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {/* Título + acciones de cabecera */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Button type="button" variant="outline">Editar horarios</Button>
-          <Button type="button" variant="outline">Justificar tardanzas</Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.push("/list/attendance/justify")}  // 👈 navega
+          >
+            Justificar tardanzas
+          </Button>
+
         </div>
       </div>
       {/*<div className="h-px w-full bg-gray-200" />*/}

@@ -3,6 +3,7 @@ import AttendanceForm from "@/components/forms/AttendanceForm";
 import { Attendance } from "@/api/interfaces/attendance.interface";
 import { toast } from "sonner";
 import { AttendanceService } from "@/api/models/attendance/attendance.api";
+import { useEffect } from "react";
 
 interface AttendancePageProps {
   //searchParams?: {
@@ -25,6 +26,10 @@ const AttendancePage: React.FC<AttendancePageProps> = ({ /*searchParams*/ }) => 
       throw err; 
     }
   };
+   useEffect(() => {
+    // siembra FALTAS del día en la última admisión
+    AttendanceService.seedToday().catch(() => {});
+  }, []);
  
   return (
     <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0 border">

@@ -10,7 +10,7 @@ export interface Student {
   firstName: string;
   lastName: string;
   dni?: string;
-  email: string;
+  email?: string;
   phone?: string;
   address?: string;
   image?: string;
@@ -25,7 +25,7 @@ export interface StudentList {
   firstName: string;
   lastName: string;
   dni?: string;
-  email: string;
+  email?: string;
   phone?: string;
   address?: string;
   image?: string;
@@ -45,7 +45,7 @@ export interface StudentWithTutor{
   firstName: string;
   lastName: string;
   dni?: string;
-  email: string;
+  email?: string;
   phone?: string;
   image?: string;
   school?: string;

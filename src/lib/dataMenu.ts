@@ -42,7 +42,7 @@ const MENU_ITEMS: MenuGroup[] = [
         icon: Clock,
         label: "Asistencias",
         href: "/list/attendance",
-        visible: [],
+        visible: ["admin"],
       },
       {
         icon: ClipboardPenLine,
@@ -79,6 +79,12 @@ const MENU_ITEMS: MenuGroup[] = [
         icon: ChartColumnIncreasing,
         label: "Reportes",
         href: "/list/reports",
+        visible: ["admin"],
+      },
+      {
+        icon: IdCard,
+        label: "Metadata",
+        href: "/list/metadata",
         visible: ["admin"],
       },
     ]

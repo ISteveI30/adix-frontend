@@ -28,6 +28,7 @@ export enum TutorType {
   PADRE = "PADRE",
   MADRE = "MADRE",
   TUTOR = "TUTOR",
+  PADREMADRE = "PADRE - MADRE",
 }
 
 
