@@ -4,7 +4,7 @@ import { Student } from "./student.interface";
 
 export interface Tutor {
   id?: string;
-  dni: string;
+  dni?: string;
   firstName: string;
   lastName: string;
   email?: string;

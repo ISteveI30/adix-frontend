@@ -46,7 +46,7 @@ const MENU_ITEMS: MenuGroup[] = [
       },
       {
         icon: ClipboardPenLine,
-        label: "Examenes",
+        label: "Examenes/Notas",
         href: "/list/exam",
         visible: ["admin"],
         //visible: ["admin", "teacher", "student", "parent"],

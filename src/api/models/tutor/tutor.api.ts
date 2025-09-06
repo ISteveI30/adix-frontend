@@ -1,7 +1,7 @@
 import fetchWrapper from "@/api/services/api";
 import { createTutor, TutorListResponse, Tutor, UpdateTutor } from "@/api/interfaces/tutor.interface";
 import { ConflictResolutionAction, TutorConflict } from "@/api/interfaces/enrollment.interface";
-
+import { stripEmpty } from "@/lib/stripEmpty";
 export class TutorService {
 
   private static BASE_URL = "/tutors";
@@ -13,9 +13,10 @@ export class TutorService {
   static async saveTutor(tutor: createTutor): Promise<createTutor> {
     // const {id, ...tutorData}= tutor
     console.log("tutor", tutor)
+    const payload = stripEmpty(tutor); 
     const response = await fetchWrapper<createTutor>("/tutors", {
       method: "POST",
-      body: tutor,
+      body: payload,
     });
 
     return response;
@@ -80,9 +81,10 @@ export class TutorService {
     // const { id, firstName, lastName, phone1, type, email, phone2, observation } = tutor
     // const tutorData = { firstName, lastName, phone1, type, email, phone2, observation }
     const { id, ...tutorData } = tutor
+    const payload = stripEmpty(tutorData)
     return await fetchWrapper<Tutor>(`${this.BASE_URL}/${id}`, {
       method: "PATCH",
-      body: tutorData,
+      body: payload,
     })
   }
 

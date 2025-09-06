@@ -720,7 +720,7 @@ export default function EnrollmentForm() {
                           valueAsNumber: true,
                           onChange: () => trigger(),
                           required: creditEnabled ? "Este campo es requerido" : false,
-                          validate: (value) => creditEnabled && (value < 1 && value > 12) ? "Mínimo 1 y Máximo 12 cuotas" : true
+                          validate: (value) => !creditEnabled || (value >= 1 && value <= 12) || "Mínimo 1 y Máximo 12 cuotas"
                         })}
                         className={errors.numInstallments ? "border-destructive" : ""}
                       />

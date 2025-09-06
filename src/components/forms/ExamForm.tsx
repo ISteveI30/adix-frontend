@@ -53,7 +53,7 @@ const ExamForm = ({ type, onSubmit }: ExamFormProps) => {
   useEffect(() => {
     setExamTypes(type === "regular" ? ["DIARIO", "SEMANAL"] : ["SIMULACRO"]);
 
-    CycleService.getAllCycles()
+    CycleService.list()
       .then((data) => setCycles(data))
       .catch((err) => console.error("Error cargando ciclos", err));
   }, [type]);

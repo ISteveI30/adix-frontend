@@ -18,21 +18,22 @@ import { Tutor } from "@/api/interfaces/tutor.interface";
 import { Student } from "@/api/interfaces/student.interface";
 import { toast } from "sonner";
 
+const empty = z.literal("");
 // Esquema del formulario
 const formSchema = z.object({
   tutorId: z.string().optional(),
-  dni: z.string().min(8, "El DNI debe tener al menos 8 caracteres").max(8, "El DNI no puede tener más de 8 caracteres"),
+  dni: z.z.union([empty, z.string().regex(/^\d{8}$/, "El DNI debe tener 8 dígitos")]).optional(),
   firstName: z.string().min(2, "El nombre es obligatorio"),
   lastName: z.string().min(2, "El apellido es obligatorio"),
-  email: z.string().email("Correo inválido").optional(),
-  phone1: z.string().min(9, "Teléfono obligatorio").max(15, "Teléfono inválido").optional(),
+  email: z.union([empty, z.string().email("Correo inválido")]).optional(),
+  phone1: z.union([empty, z.string().min(6, "Teléfono inválido").max(15, "Teléfono inválido")]).optional(),
   phone2: z.string().optional(),
   type: z.nativeEnum(TutorType, { errorMap: () => ({ message: "Tipo de tutor inválido" }) }),
   observation: z.string().optional(),
   studentId: z.string().optional(),
   studentFirstName: z.string().min(2, "El nombre es obligatorio"),
   studentLastName: z.string().min(2, "El apellido es obligatorio"),
-  studentEmail: z.string().email("Correo inválido").optional(),
+  studentEmail: z.union([empty, z.string().email("Correo inválido")]).optional(),
   studentDni: z.string().optional(),
   studentPhone: z.string().optional(),
   studentAddress: z.string().optional(),
@@ -188,7 +189,7 @@ const TutorStudentForm: FC<TutorStudentFormProps> = ({ onSave, initialData, onCa
     setValue("tutorId", tutor.id!);
     setValue("firstName", tutor.firstName);
     setValue("lastName", tutor.lastName);
-    setValue("email", tutor.email ?? "");
+    setValue("email", tutor.email ?? undefined);
     setValue("phone1", tutor.phone1);
     setValue("phone2", tutor.phone2 ?? "");
     setValue("type", tutor.type as TutorType);
@@ -217,15 +218,21 @@ const TutorStudentForm: FC<TutorStudentFormProps> = ({ onSave, initialData, onCa
     setIsNewTutor(true);
   };
 
+  const opt = (v?: string) => (v && v.trim() !== "" ? v.trim() : undefined);
+  const nilIfEmpty = (v?: string | null) => {
+    const s = (v ?? '').trim();
+    return s.length ? s : undefined;
+  };
+
   const handleSave = useCallback(async (formData: z.infer<typeof formSchema>) => {
     const tutor: Tutor = {
       id: formData.tutorId,
       dni: formData.dni,
       firstName: formData.firstName,
       lastName: formData.lastName,
-      phone1: formData.phone1,
+      phone1: nilIfEmpty(formData.phone1),
       type: formData.type,
-      email: formData.email,
+      email: nilIfEmpty(formData.email),
       phone2: formData.phone2,
       observation: formData.observation,
     };
@@ -234,7 +241,7 @@ const TutorStudentForm: FC<TutorStudentFormProps> = ({ onSave, initialData, onCa
       id: formData.studentId!,
       firstName: formData.studentFirstName,
       lastName: formData.studentLastName,
-      email: formData.studentEmail,
+      email: nilIfEmpty(formData.studentEmail),
       dni: formData.studentDni,
       phone: formData.studentPhone,
       address: formData.studentAddress,
@@ -289,7 +296,7 @@ const TutorStudentForm: FC<TutorStudentFormProps> = ({ onSave, initialData, onCa
       <div key={name} className="space-y-2">
         <Label htmlFor={name}>
           {label}
-          {required && <span className="text-red-500 ml-1">*</span>}
+          {required && <span className="text-red-500 ml-1"></span>}
         </Label>
         {isTypeField ? (
           <Select

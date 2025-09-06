@@ -48,6 +48,9 @@ export const formatCurrency = (value: number) => {
   }).format(value)
 }
 
+
+// utils/stripEmpty.ts (o donde prefieras)
+
 // export function useDebounce<T>(value: T, delay: number): T {
 //   const [debouncedValue, setDebouncedValue] = useState<T>(value);
 

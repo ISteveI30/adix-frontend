@@ -35,7 +35,7 @@ const InterestedForm = (
   useEffect(() => {
     // cargar áreas y ciclos
     getAreas().then(setAreas);
-    CycleService.getAllCycles().then(setCycles);
+    CycleService.list().then(setCycles);
 
     if (props.type === "update" && props.dataEdit) {
       // precargar valores desde el interesado
