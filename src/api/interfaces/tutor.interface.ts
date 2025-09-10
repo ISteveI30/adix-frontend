@@ -8,7 +8,7 @@ export interface Tutor {
   firstName: string;
   lastName: string;
   email?: string;
-  phone1: string;
+  phone1?: string;
   phone2?: string;
   type: TutorType;
   observation?: string;
@@ -16,7 +16,7 @@ export interface Tutor {
 }
 
 export interface TutorWithStudent {
-  id: string;
+  id?: string;
   dni: string;
   firstName: string;
   lastName: string;
@@ -29,11 +29,11 @@ export interface TutorWithStudent {
 }
 
 export interface createTutor {
-  dni: string;
+  dni?: string;
   firstName: string;
   lastName: string;
   email?: string;
-  phone1: string;
+  phone1?: string;
   phone2?: string;
   type: TutorType;
   observation?: string;

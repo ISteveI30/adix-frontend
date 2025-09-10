@@ -185,7 +185,7 @@ export default function EnrollmentForm() {
       } finally {
         setLoading(false)
       }
-    }
+    } 
 
     loadInitialData()
   }, [initialData])

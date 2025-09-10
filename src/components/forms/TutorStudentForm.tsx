@@ -34,7 +34,7 @@ const formSchema = z.object({
   studentFirstName: z.string().min(2, "El nombre es obligatorio"),
   studentLastName: z.string().min(2, "El apellido es obligatorio"),
   studentEmail: z.union([empty, z.string().email("Correo inválido")]).optional(),
-  studentDni: z.string().optional(),
+  studentDni: z.union([empty, z.string().regex(/^\d{8}$/, "El DNI debe tener 8 dígitos")]).optional(),
   studentPhone: z.string().optional(),
   studentAddress: z.string().optional(),
   studentSchool: z.string().optional(),
@@ -242,10 +242,10 @@ const TutorStudentForm: FC<TutorStudentFormProps> = ({ onSave, initialData, onCa
       firstName: formData.studentFirstName,
       lastName: formData.studentLastName,
       email: nilIfEmpty(formData.studentEmail),
-      dni: formData.studentDni,
-      phone: formData.studentPhone,
-      address: formData.studentAddress,
-      school: formData.studentSchool,
+      dni: nilIfEmpty(formData.studentDni),
+      phone: nilIfEmpty(formData.studentPhone),
+      address: nilIfEmpty(formData.studentAddress),
+      school: nilIfEmpty(formData.studentSchool),
       tutorId: tutor.id!,
     };
 
