@@ -10,7 +10,8 @@ export enum PaymentStatus {
 export enum PaymentMethod {
   EFECTIVO = "EFECTIVO",
   TRANSFERENCIA_BANCARIA = "TRANSFERENCIA_BANCARIA",
-  TARJETA = "TARJETA"
+  TARJETA = "TARJETA",
+  YAPE = "YAPE"
 }
 
 export interface PaymentDto {

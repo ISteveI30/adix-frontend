@@ -10,6 +10,7 @@ import { use } from "react"
 
 const columns: ColumnDefinition<TutorWithStudent>[] = [
   { header: "Info", accessor: "info" },
+  { header: "Apoderado", accessor: "apoderado" },
   { header: "Celular", accessor: "phone1", className: "hidden lg:table-cell" },
   { header: "Tipo de Tutor", accessor: "type", className: "hidden md:table-cell" },
   { header: "Hijos", accessor: "students", className: "hidden md:table-cell" },
@@ -50,6 +51,12 @@ const TutorTable = (
             <p className="text-xs text-gray-500">{item.email}</p>
           </div>
         </td>
+        <td className="p-1 hidden md:table-cell">
+          <div className="flex flex-col">
+            <h3 className="font-semibold">{item.otherFirstName} {item.otherLastName}</h3>
+            <p className="text-xs text-gray-500">Telefono: {item.otherPhone}</p>
+          </div>
+        </td>
         <td className="p-2 hidden lg:table-cell">{item.phone1}</td>
         <td className="p-2 hidden md:table-cell">{item.type}</td>
         <td className="p-2 hidden md:table-cell">{item.students ? item.students.length : 0}</td>
@@ -57,7 +64,7 @@ const TutorTable = (
         <td>
           <div className="flex items-start gap-2">
             <Link href={`/list/tutors/${item.id}?page=${currentPage}`} className="w-full">
-              <Button 
+              <Button
                 title="Editar Apoderado"
                 className="w-7 h-7 flex items-center justify-center rounded-full bg-blue-600 text-white hover:bg-blue-800 cursor-pointer">
                 <Pencil size={16} />

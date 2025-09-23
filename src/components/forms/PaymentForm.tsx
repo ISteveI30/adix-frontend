@@ -112,7 +112,7 @@ export function PaymentForm({ data }: { data: AccountReceivable }) {
         />
         <InputFieldUpdate
           name="invoiceNumber"
-          label="Número de Recibo"
+          label="Número de Recibo (Ingrese el nombre que se asignará al recibo)"
           type="text"
         />
         <InputFieldUpdate
@@ -145,7 +145,7 @@ export function PaymentForm({ data }: { data: AccountReceivable }) {
 
         <InputFieldUpdate
           name="amountPaid"
-          label="Monto"
+          label="Monto (Especifique el monto que pagará)"
           type="number"
           defaultValue={data.pendingBalance}
           inputProps={{

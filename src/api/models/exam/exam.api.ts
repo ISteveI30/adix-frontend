@@ -9,6 +9,10 @@ export type ScoreRowPayload = {
   totalScore?: number | null;
 };
 
+// Tipos inline para pagos (evita imports adicionales)
+type PaymentMethod = 'YAPE' | 'PLIN' | 'RECIBO';
+type PaymentStatus = 'PAGO' | 'DEBE';
+
 export class ExamService {
 
   static async create(data: Partial<Exam>): Promise<Exam> {
@@ -25,6 +29,7 @@ export class ExamService {
   static async getById(id: string): Promise<Exam> {
     return await fetchWrapper<Exam>(`/exam/${id}`, { method: "GET" });
   }
+
   static async getRoster(examId: string): Promise<RosterRow[]>  {
     return await fetchWrapper(`/exam/${examId}/roster`);
   }
@@ -46,13 +51,24 @@ export class ExamService {
   static async addParticipants(examId: string, payload: { studentIds: string[]; interestedIds: string[] }) {
     return await fetchWrapper(`/exam/${examId}/participants/add`, { method: "POST", body: payload });
   }
+
   static async removeParticipants(examId: string, payload: { studentIds: string[]; interestedIds: string[] }) {
     return await fetchWrapper(`/exam/${examId}/participants/remove`, { method: "POST", body: payload });
   }
 
-
   static async updateScores(examId: string, rows: ScoreRowPayload[]): Promise<void> {
     await fetchWrapper<void>(`/exam/${examId}/scores`, { method: "PATCH", body: { rows } });
+  }
+
+  
+  static async savePayments(
+    examId: string,
+    dto: { rows: Array<{ detailId: string; amountPaid?: number | null; typePaid?: PaymentMethod | null; statusPaid?: PaymentStatus | null; }> }
+  ): Promise<{ updated: number }> {
+    return await fetchWrapper<{ updated: number }>(`/exam/${examId}/payments`, {
+      method: "PATCH",
+      body: dto,
+    });
   }
 
   static async update(id: string, data: Partial<Exam>): Promise<Exam> {

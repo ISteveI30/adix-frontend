@@ -30,6 +30,9 @@ const formSchema = z.object({
   phone2: z.string().optional(),
   type: z.nativeEnum(TutorType, { errorMap: () => ({ message: "Tipo de tutor inválido" }) }),
   observation: z.string().optional(),
+  otherFirstName: z.string().optional(),
+  otherLastName: z.string().optional(),
+  otherPhone: z.union([empty, z.string().min(6, "Teléfono inválido").max(15, "Teléfono inválido")]).optional(),
   studentId: z.string().optional(),
   studentFirstName: z.string().min(2, "El nombre es obligatorio"),
   studentLastName: z.string().min(2, "El apellido es obligatorio"),
@@ -93,7 +96,7 @@ const TutorStudentForm: FC<TutorStudentFormProps> = ({ onSave, initialData, onCa
 
   // Campos del formulario organizados para reutilización
   const tutorFields: FormField[] = [
-    { label: "DNI", name: "dni", maxlength: 8, required: true },
+    { label: "DNI", name: "dni", maxlength: 8 },
     { label: "Nombre", name: "firstName", required: true },
     { label: "Apellido", name: "lastName", required: true },
     { label: "Email", name: "email", type: "email" },
@@ -101,6 +104,9 @@ const TutorStudentForm: FC<TutorStudentFormProps> = ({ onSave, initialData, onCa
     { label: "Teléfono 2", name: "phone2" },
     { label: "Tipo de Tutor", name: "type" },
     { label: "Observaciones", name: "observation", type: "textarea" },
+    { label: "Nombre Familiar Encargado", name: "otherFirstName" },
+    { label: "Apellido Familiar Encargado", name: "otherLastName" },
+    { label: "Teléfono Familiar Encargado", name: "otherPhone" },
   ];
 
   const studentFields: FormField[] = [
@@ -126,6 +132,9 @@ const TutorStudentForm: FC<TutorStudentFormProps> = ({ onSave, initialData, onCa
       phone1: "",
       phone2: "",
       observation: "",
+      otherFirstName: "",
+      otherLastName: "",
+      otherPhone: "",
     });
   };
 
@@ -145,6 +154,7 @@ const TutorStudentForm: FC<TutorStudentFormProps> = ({ onSave, initialData, onCa
     try {
       if (initialData) return
       const { dni } = watch();
+      //if (!dni || dni.length !== 8) return;
       const { available, tutor } = await TutorService.checkDni(dni);
 
       if (available && !initialData) {
@@ -194,6 +204,10 @@ const TutorStudentForm: FC<TutorStudentFormProps> = ({ onSave, initialData, onCa
     setValue("phone2", tutor.phone2 ?? "");
     setValue("type", tutor.type as TutorType);
     setValue("observation", tutor.observation ?? "");
+    setValue("otherFirstName", tutor.otherFirstName?? "");
+    setValue("otherLastName", tutor.otherLastName?? "");
+    setValue("otherPhone", tutor.otherPhone?? "");
+  
   };
 
   const updateStudentOptions = (studentsList: Student[]) => {
@@ -235,6 +249,9 @@ const TutorStudentForm: FC<TutorStudentFormProps> = ({ onSave, initialData, onCa
       email: nilIfEmpty(formData.email),
       phone2: formData.phone2,
       observation: formData.observation,
+      otherFirstName: formData.otherFirstName,
+      otherLastName: formData.otherLastName,
+      otherPhone: formData.otherPhone,
     };
 
     const student: Student = {
@@ -255,7 +272,8 @@ const TutorStudentForm: FC<TutorStudentFormProps> = ({ onSave, initialData, onCa
     } else {
       student.birthday = undefined;
     }
-
+    console.log('tutor: ',tutor)
+    console.log('student: ',student)
     onSave({ tutor, student });
   }, [onSave]);
 

@@ -13,6 +13,9 @@ export interface Tutor {
   type: TutorType;
   observation?: string;
   students?: Student[];
+  otherFirstName?: string;
+  otherLastName?: string;
+  otherPhone?: string;
 }
 
 export interface TutorWithStudent {
@@ -26,6 +29,9 @@ export interface TutorWithStudent {
   type: TutorType;
   observation?: string;
   students?: Student[];
+  otherFirstName?: string;
+  otherLastName?: string;
+  otherPhone?: string;
 }
 
 export interface createTutor {

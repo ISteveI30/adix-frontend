@@ -8,6 +8,7 @@ import { ExamService } from "@/api/models/exam/exam.api";
 import { EnrollmentService } from "@/api/models/enrollment/enrollment.api";
 import { InterestedService } from "@/api/models/interested/interested.api";
 import { getAreas, getCareersByArea } from "@/api/models/areas/areas.api";
+import type { PaymentMethod, PaymentStatus, RosterRow } from "@/api/interfaces/exam.interface";
 
 type Exam = { id: string; title: string; modality: string; type: string; cycleId: string; };
 type Row = {
@@ -21,6 +22,8 @@ type Row = {
   assigned: boolean; // Estado
 };
 
+type PayFields = { amountPaid: number | null; typePaid: PaymentMethod | null; statusPaid: PaymentStatus | null; };
+
 export default function ManageExamPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -30,6 +33,11 @@ export default function ManageExamPage() {
 
   const [rows, setRows] = useState<Row[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
+
+  // mapa de asignados => detailId + pagos actuales
+  const [assignedMap, setAssignedMap] = useState<Record<string, { detailId: string } & PayFields>>({});
+  // estado editable de pagos por detailId
+  const [payments, setPayments] = useState<Record<string, PayFields>>({});
 
   // filtros
   const [areaId, setAreaId] = useState("");
@@ -48,9 +56,25 @@ export default function ManageExamPage() {
 
       setAreas((await getAreas()) ?? []);
 
-      // roster actual para saber quién está asignado
-      const roster: Array<{ personKey: string }> = await ExamService.getRoster(id);
+      // roster actual
+      const roster: RosterRow[] = await ExamService.getRoster(id);
+
       const assignedSet = new Set(roster.map(r => r.personKey));
+      const _assignedMap: Record<string, { detailId: string } & PayFields> = {};
+      const _payments: Record<string, PayFields> = {};
+
+      for (const r of roster) {
+        if (!r.detailId) continue;
+        const p: PayFields = {
+          amountPaid: r.amountPaid ?? 0,
+          typePaid: r.typePaid ?? null,
+          statusPaid: r.statusPaid ?? null,
+        };
+        _assignedMap[r.personKey] = { detailId: r.detailId, ...p };
+        _payments[r.detailId] = { ...p };
+      }
+      setAssignedMap(_assignedMap);
+      setPayments(_payments);
 
       // elegibles (matriculados del ciclo/mod y, si es simulacro, interesados del ciclo)
       const enrollments = await EnrollmentService.listActives({
@@ -60,7 +84,7 @@ export default function ManageExamPage() {
       const stds: Row[] = (Array.isArray(enrollments) ? enrollments : []).map((en: any) => ({
         key: en?.student?.id,
         firstName: en?.student?.firstName ?? "",
-        lastName : en?.student?.lastName ?? "",
+        lastName: en?.student?.lastName ?? "",
         type: "Matriculado",
         careerId: en?.career?.id,
         careerName: en?.career?.name,
@@ -151,6 +175,35 @@ export default function ManageExamPage() {
     router.replace("/list/exam");
   };
 
+  const setPay = (detailId: string, patch: Partial<PayFields>) => {
+    setPayments(prev => ({
+      ...prev,
+      [detailId]: { ...prev[detailId], ...patch }
+    }));
+  };
+
+  const doRegisterPayments = async () => {
+    if (!exam) return;
+
+    // arma payload
+    const rows = Object.entries(payments).map(([detailId, p]) => ({
+      detailId,
+      amountPaid: (p.amountPaid ?? 0) < 0 ? 0 : p.amountPaid ?? 0,
+      typePaid: p.typePaid ?? null,
+      statusPaid: p.statusPaid ?? null,
+    }));
+
+    // simple validación de no negativos
+    const anyNegative = rows.some(r => (r.amountPaid ?? 0) < 0);
+    if (anyNegative) {
+      await Swal.fire({ icon: "error", title: "El monto no puede ser negativo" });
+      return;
+    }
+
+    await ExamService.savePayments(exam.id, { rows });
+    await Swal.fire({ icon: "success", title: "Pagos registrados" });
+  };
+
   if (!exam) return null;
 
   return (
@@ -194,32 +247,113 @@ export default function ManageExamPage() {
             <th className="text-left p-2">Carrera</th>
             <th className="text-left p-2">Tipo</th>
             <th className="text-left p-2">Estado</th>
+            {/* NUEVAS COLUMNAS */}
+            <th className="text-left p-2">(Monto)</th>
+            <th className="text-left p-2">(Método de Pago)</th>
+            <th className="text-left p-2">(Estatus)</th>
           </tr>
         </thead>
         <tbody>
-          {filteredRows.map(r => (
-            <tr key={r.key} className="border-t">
-              <td className="p-2"><input type="checkbox" checked={selected.includes(r.key)} onChange={() => toggle(r.key)} /></td>
-              <td className="p-2">{r.firstName} {r.lastName}</td>
-              <td className="p-2">{r.careerName ?? "-"}</td>
-              <td className="p-2">{r.type}</td>
-              <td className="p-2">
-                {r.assigned
-                  ? <span className="text-green-700 font-medium">Asignado</span>
-                  : <span className="text-gray-500">No asignado</span>}
-              </td>
-            </tr>
-          ))}
+          {filteredRows.map(r => {
+            // ✅ Evita union con boolean: devuelve undefined si no está asignado
+            const assigned = r.assigned ? assignedMap[r.key] : undefined;
+            const detailId = assigned?.detailId;
+            const pay = detailId
+              ? (payments[detailId] ?? { amountPaid: 0, typePaid: null, statusPaid: null })
+              : null;
+
+            return (
+              <tr key={r.key} className="border-t">
+                <td className="p-2">
+                  <input
+                    type="checkbox"
+                    checked={selected.includes(r.key)}
+                    onChange={() => toggle(r.key)}
+                  />
+                </td>
+
+                <td className="p-2">{r.firstName} {r.lastName}</td>
+                <td className="p-2">{r.careerName ?? "-"}</td>
+                <td className="p-2">{r.type}</td>
+                <td className="p-2">
+                  {r.assigned
+                    ? <span className="text-green-700 font-medium">Asignado</span>
+                    : <span className="text-gray-500">No asignado</span>}
+                </td>
+
+                {/* (Monto) */}
+                <td className="p-2">
+                  {detailId ? (
+                    <input
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      className="border rounded px-2 py-1 w-28"
+                      value={pay?.amountPaid ?? 0}
+                      onChange={(e) =>
+                        setPay(detailId, {
+                          amountPaid: e.target.value === '' ? 0 : Number(e.target.value),
+                        })
+                      }
+                    />
+                  ) : <span className="text-gray-400">-</span>}
+                </td>
+
+                {/* (Método de Pago) */}
+                <td className="p-2">
+                  {detailId ? (
+                    <select
+                      className="border rounded px-2 py-1"
+                      value={pay?.typePaid ?? ''}
+                      onChange={(e) =>
+                        setPay(detailId, {
+                          typePaid: (e.target.value || null) as any,
+                        })
+                      }
+                    >
+                      <option value="">--</option>
+                      <option value="YAPE">YAPE</option>
+                      <option value="PLIN">PLIN</option>
+                      <option value="RECIBO">RECIBO</option>
+                    </select>
+                  ) : <span className="text-gray-400">-</span>}
+                </td>
+
+                {/* (Estatus) */}
+                <td className="p-2">
+                  {detailId ? (
+                    <select
+                      className="border rounded px-2 py-1"
+                      value={pay?.statusPaid ?? ''}
+                      onChange={(e) =>
+                        setPay(detailId, {
+                          statusPaid: (e.target.value || null) as any,
+                        })
+                      }
+                    >
+                      <option value="">--</option>
+                      <option value="PAGO">PAGO</option>
+                      <option value="DEBE">DEBE</option>
+                    </select>
+                  ) : <span className="text-gray-400">-</span>}
+                </td>
+              </tr>
+            );
+          })}
           {filteredRows.length === 0 && (
-            <tr><td colSpan={5} className="p-4 text-sm text-gray-500">Sin resultados</td></tr>
+            <tr>
+              <td colSpan={8} className="p-4 text-sm text-gray-500">Sin resultados</td>
+            </tr>
           )}
         </tbody>
       </table>
 
       <div className="flex gap-3 mt-6">
-        <Button className="bg-red-600" onClick={() => router.back()}>Cancelar</Button>
+        <Button className="bg-red-600" onClick={() => router.back()}>Regresar</Button>
         <Button className="bg-yellow-600" onClick={doRemove}>Quitar alumnos</Button>
         <Button className="bg-blue-600" onClick={doAdd}>Agregar alumnos y Guardar</Button>
+        {/* NUEVO BOTÓN PROPIO */}
+        <Button className="bg-green-700" onClick={doRegisterPayments}>Registrar pago</Button>
       </div>
     </section>
   );
