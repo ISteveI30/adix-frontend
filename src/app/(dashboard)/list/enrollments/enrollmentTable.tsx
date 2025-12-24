@@ -13,6 +13,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useDeferredValue } from "react";
 import Swal from "sweetalert2";
+import { useRouter } from "next/navigation";
 
 const columns: ColumnDefinition<EnrollmentWithStudent>[] = [
   { header: "Info", accessor: "info" },
@@ -37,7 +38,7 @@ export default function EnrollmentTable({
     total: 0
   });
   const [loading, setLoading] = useState(true);
-
+  const router = useRouter();
 
   const fetchData = async (page?: number, searchData?: boolean) => {
     try {
@@ -105,8 +106,9 @@ export default function EnrollmentTable({
         }).then(async (result) => {
           if (result.isConfirmed) {
             await EnrollmentService.deleteEnrollment(id);
-            setDataEnrollment(prev => prev.filter(item => item.id !== id));
+            setDataEnrollment(prev => prev.filter(item => item.enrollmentId  !== id));
             Swal.fire("¡Anulado!",`Matrícula Eliminada`, "success");
+            router.refresh();
           }
         });
   };

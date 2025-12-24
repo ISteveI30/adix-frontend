@@ -107,6 +107,7 @@ const TutorStudentForm: FC<TutorStudentFormProps> = ({ onSave, initialData, onCa
     { label: "Nombre Familiar Encargado", name: "otherFirstName" },
     { label: "Apellido Familiar Encargado", name: "otherLastName" },
     { label: "Teléfono Familiar Encargado", name: "otherPhone" },
+    { label: "Tipo de parentesco", name: "othertype" },
   ];
 
   const studentFields: FormField[] = [

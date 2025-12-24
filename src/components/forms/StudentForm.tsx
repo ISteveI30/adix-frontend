@@ -10,6 +10,7 @@ import InputFieldUpdate from '../customs/InputFieldUpdate';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
 import { ROLE } from '@/lib/data';
+import { useRouter } from "next/navigation";
 
 interface StudentFormProps {
   data: Student;
@@ -44,7 +45,8 @@ const StudentForm = (
 
     const response = await StudentService.updateStudent({
       ...parsedResult.data,
-      email: parsedResult.data.email!,
+      //email: parsedResult.data.email!,
+      ...(parsedResult.data.email === "" ? { email: undefined } : {}),
     })
     if (!response) {
       Swal.fire({
@@ -62,9 +64,8 @@ const StudentForm = (
     })
     redirect(`/list/students?page=${page}`)
   }
-
+  const router = useRouter();
   const handleDelete = async (id: string) => {
-
     Swal.fire({
       title: "¿Estás seguro?",
       text: "No podrás revertir esto!",
@@ -74,18 +75,30 @@ const StudentForm = (
       cancelButtonColor: "#d33",
       confirmButtonText: "Sí, eliminar!",
     }).then(async (result) => {
-      if (result.isConfirmed) {
-        const response = await StudentService.deleteStudent(id);
-        if (!response.state) {
-          Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: response.message,
-          });
-          return;
-        }
+      if (!result.isConfirmed) return;
+
+      const response = await StudentService.deleteStudent(id);
+
+      if (!response.state) {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: response.message,
+        });
+        return;
       }
-    })
+
+      await Swal.fire({
+        icon: "success",
+        title: "Eliminado",
+        text: response.message,
+        timer: 1200,
+        showConfirmButton: false,
+      });
+
+      router.push(`/list/students?page=${page ?? 1}`);
+      router.refresh(); 
+    });
   };
 
   const handleCancel = () => {

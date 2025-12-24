@@ -21,7 +21,7 @@ export enum Modality {
 export enum Shift {
   MANANA = "MANANA",
   TARDE = "TARDE",
-  NOCHE = "NOCHE",
+  //NOCHE = "NOCHE",
 }
 
 export enum TutorType {
