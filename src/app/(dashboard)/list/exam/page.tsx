@@ -6,7 +6,6 @@ import TableView, { ColumnDefinition } from "@/components/customs/TableView";
 import { ExamService } from "@/api/models/exam/exam.api";
 import { ExamSummary } from "@/api/interfaces/exam.interface";
 import { CreateExam, CreateExamWithExternal } from "@/components/customs/ButtonsForm";
-import { ITEMS_PER_PAGE } from "@/api/services/api";
 import { Button } from "@/components/ui/button";
 import { Pencil, GraduationCap, Trash2 } from "lucide-react";
 import Swal from "sweetalert2";
@@ -14,48 +13,56 @@ import Pagination from "@/components/customs/Pagination";
 
 const PAGE_SIZE = 10;
 
+const columns: ColumnDefinition<ExamSummary>[] = [
+  { header: "Examen", accessor: "title" },
+  { header: "Modalidad", accessor: "modality" },
+  { header: "Asignados", accessor: "assigned" },
+  { header: "Acciones", accessor: "actions" },
+];
+
 const ExamPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [data, setData] = useState<ExamSummary[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const page = Math.max(1, Number(searchParams.get("page") || "1"));
   const totalPages = Math.max(1, Math.ceil(data.length / PAGE_SIZE));
   const pageData = useMemo(
     () => data.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
-    [data, page]
+    [data, page],
   );
 
   useEffect(() => {
-    (async () => {
+    const load = async () => {
       try {
-        const rows = await ExamService.getSummary();
+        setLoading(true);
+        const rows = await ExamService.summary();
         setData(rows);
-      } catch (e) {
-        console.error("Error cargando exámenes:", e);
+      } catch (error) {
+        console.error(error);
+        Swal.fire("Error", "No se pudieron cargar los exámenes", "error");
+      } finally {
+        setLoading(false);
       }
-    })();
+    };
+
+    load();
   }, []);
 
-  const columns: ColumnDefinition<ExamSummary>[] = [
-    { header: "Examen", accessor: "info", className: "py-2" },
-    { header: "Modalidad", accessor: "modality", className: "py-2" },
-    { header: "Asignados", accessor: "assigned", className: "py-2 text-right pr-6" },
-    { header: "Acciones", accessor: "actions", className: "py-2 text-right pr-6" },
-  ];
-
   const handleDelete = async (id: string) => {
-    const ok = await Swal.fire({
+    const result = await Swal.fire({
+      title: "¿Eliminar examen?",
+      text: "El examen será eliminado de forma lógica.",
       icon: "warning",
-      title: "Eliminar examen",
-      text: "¿Estás seguro que deseas eliminar el examen?",
       showCancelButton: true,
       confirmButtonText: "Sí, eliminar",
-      cancelButtonText: "Cancelar",
     });
-    if (!ok.isConfirmed) return;
+
+    if (!result.isConfirmed) return;
+
     await ExamService.delete(id);
-    setData(prev => prev.filter(x => x.id !== id)); // refresca
+    setData((prev) => prev.filter((x) => x.id !== id));
   };
 
   const renderRow = (item: ExamSummary) => (
@@ -65,7 +72,6 @@ const ExamPage = () => {
       <td className="py-3 text-right pr-6">{item.assigned}</td>
       <td className="py-3">
         <div className="flex justify-end gap-2 pr-6">
-          {/* Editar (participantes + nombre) */}
           <Button
             size="icon"
             className="h-8 w-8 rounded-full bg-blue-600"
@@ -75,7 +81,6 @@ const ExamPage = () => {
             <Pencil className="h-4 w-4" />
           </Button>
 
-          {/* Asignar nota */}
           <Button
             size="icon"
             className="h-8 w-8 rounded-full bg-yellow-500"
@@ -85,7 +90,6 @@ const ExamPage = () => {
             <GraduationCap className="h-4 w-4" />
           </Button>
 
-          {/* Eliminar (soft delete) */}
           <Button
             size="icon"
             className="h-8 w-8 rounded-full bg-red-600"
@@ -98,6 +102,10 @@ const ExamPage = () => {
       </td>
     </tr>
   );
+
+  if (loading) {
+    return <div className="p-4">Cargando exámenes...</div>;
+  }
 
   return (
     <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">

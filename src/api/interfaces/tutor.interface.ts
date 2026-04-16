@@ -3,7 +3,7 @@ import { TutorType } from "./enrollment.interface";
 import { Student } from "./student.interface";
 
 export interface Tutor {
-  id?: string;
+  id: string;
   dni?: string;
   firstName: string;
   lastName: string;
@@ -19,12 +19,12 @@ export interface Tutor {
 }
 
 export interface TutorWithStudent {
-  id?: string;
-  dni: string;
+  id: string;
+  dni?: string;
   firstName: string;
   lastName: string;
   email?: string;
-  phone1: string;
+  phone1?: string;
   phone2?: string;
   type: TutorType;
   observation?: string;
@@ -44,9 +44,12 @@ export interface createTutor {
   type: TutorType;
   observation?: string;
   students?: Student[];
+  otherFirstName?: string;
+  otherLastName?: string;
+  otherPhone?: string;
 }
 
-export type UpdateTutor = Partial<Tutor>
+export type UpdateTutor = Partial<Tutor>;
 
 export interface TutorListResponse {
   data: TutorWithStudent[];

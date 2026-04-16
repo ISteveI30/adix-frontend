@@ -1,7 +1,7 @@
-import { Career } from "./career.interface"
-import { Cycle } from "./cycle.interface"
-import { Student } from "./student.interface"
-import { Tutor } from "./tutor.interface"
+import { Career } from "./career.interface";
+import { Cycle } from "./cycle.interface";
+import { Student } from "./student.interface";
+import { Tutor } from "./tutor.interface";
 
 export enum EnrollmentStatus {
   ACTIVO = "ACTIVO",
@@ -21,55 +21,53 @@ export enum Modality {
 export enum Shift {
   MANANA = "MANANA",
   TARDE = "TARDE",
-  //NOCHE = "NOCHE",
+  NOCHE = "NOCHE",
 }
 
 export enum TutorType {
   PADRE = "PADRE",
   MADRE = "MADRE",
   TUTOR = "TUTOR",
-  PADREMADRE = "PADRE - MADRE",
+  PADREMADRE = "PADREMADRE",
 }
-
 
 export interface Enrollment {
-  id: string
-  startDate: string
-  endDate: string
-  studentId: string
-  codeStudent: string
-  admissionId: string
-  cycle: Cycle
-  career: Career
-  modality: Modality
-  shift: Shift
-  credit: boolean
-  numInstallments: number
-  paymentCarnet: boolean
-  carnetCost: number
-  totalCost: number
-  initialPayment?: number
-  discounts?: number
-  notes?: string
-  status: EnrollmentStatus
-  createdAt: string
-  updatedAt: string
-
-  student?: Student
+  id: string;
+  startDate: string;
+  endDate: string;
+  studentId: string;
+  codeStudent: string;
+  admissionId: string;
+  cycle: Cycle;
+  career: Career;
+  modality: Modality;
+  shift: Shift;
+  credit: boolean;
+  numInstallments: number;
+  paymentCarnet: boolean;
+  carnetCost: number;
+  totalCost: number;
+  initialPayment?: number;
+  discounts?: number;
+  notes?: string;
+  status?: EnrollmentStatus;
+  createdAt: string;
+  updatedAt: string;
+  student?: Student;
 }
 
-export interface EnrollmentWithStudent  {
-  id: string
-  enrollmentId?: string
-  startDate: string
-  endDate: string
-  codeStudent: string
-  studentName: string
-  studentPhone?: string
-  studentImage: string
-  careerName: string
-  // [key: string]: unknown
+export interface EnrollmentWithStudent {
+  id: string;
+  enrollmentId?: string;
+  startDate: string;
+  endDate: string;
+  codeStudent: string;
+  studentName: string;
+  studentPhone?: string;
+  studentImage: string;
+  careerName: string;
 }
+
 export interface MetaData {
   lastPage: number;
   page: number;
@@ -80,33 +78,33 @@ export interface EnrollmentListResponse {
   data: Enrollment[];
   meta: MetaData;
 }
+
 export interface CreateEnrollmentDto {
-  startDate: string
-  endDate: string
-  studentId: string
-  admissionId: string
-  cycleId: string
-  careerId: string
-  modality: Modality
-  shift: Shift
-  credit: boolean
-  numInstallments: number
-  paymentCarnet: boolean
-  carnetCost: number
-  totalCost: number
-  initialPayment?: number
-  discounts?: number
-  notes?: string
-  status?: EnrollmentStatus
+  startDate: string;
+  endDate: string;
+  studentId: string;
+  admissionId: string;
+  cycleId: string;
+  careerId: string;
+  modality: Modality;
+  shift: Shift;
+  credit: boolean;
+  numInstallments: number;
+  paymentCarnet: boolean;
+  carnetCost: number;
+  totalCost: number;
+  initialPayment?: number;
+  discounts?: number;
+  notes?: string;
 }
 
 export interface TutorStudentData {
   tutorId?: string;
-  dni: string;
+  dni?: string;
   firstName: string;
   lastName: string;
   email?: string;
-  phone1: string;
+  phone1?: string;
   phone2?: string;
   type: TutorType;
   observation?: string;
@@ -119,8 +117,7 @@ export interface TutorStudentData {
   studentPhone?: string;
   studentAddress?: string;
   studentSchool?: string;
-  studentBirthday?: string;
-
+  studentBirthday: string;
 }
 
 export interface TutorStudentNestedData {
@@ -128,7 +125,7 @@ export interface TutorStudentNestedData {
   student: Student;
 }
 
-export type ConflictResolutionAction = 'edit' | 'create' | 'cancel';
+export type ConflictResolutionAction = "edit" | "create" | "cancel";
 
 export interface TutorConflict {
   show: boolean;
@@ -144,6 +141,6 @@ export interface ApiErrorDetails {
 }
 
 export interface EnrollmentDetail {
-  cycle: { name: string;};
-  admission: { name: string;};
+  cycle: { name: string };
+  admission: { name: string };
 }

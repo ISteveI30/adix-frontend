@@ -1,98 +1,173 @@
-import { TutorListResponse, TutorWithStudent } from "@/api/interfaces/tutor.interface"
-import { TutorService } from "@/api/models/tutor/tutor.api"
-import { ITEMS_PER_PAGE } from "@/api/services/api"
-import Pagination from "@/components/customs/Pagination"
-import TableView, { ColumnDefinition } from "@/components/customs/TableView"
-import { Button } from "@/components/ui/button"
-import { Pencil } from "lucide-react"
-import Link from "next/link"
-import { use } from "react"
+"use client";
 
-const columns: ColumnDefinition<TutorWithStudent>[] = [
+import { TutorListResponse } from "@/api/interfaces/tutor.interface";
+import { TutorService } from "@/api/models/tutor/tutor.api";
+import { ITEMS_PER_PAGE } from "@/api/services/api";
+import Pagination from "@/components/customs/Pagination";
+import TableView, { ColumnDefinition } from "@/components/customs/TableView";
+import { Button } from "@/components/ui/button";
+import { Pencil } from "lucide-react";
+import Link from "next/link";
+import { useDeferredValue, useEffect, useState } from "react";
+
+type TutorRow = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  dni?: string;
+  email?: string;
+  phone1?: string;
+  type: string;
+  observation?: string;
+  studentCount: number;
+  info: string;
+  apoderado: string;
+  actions: string;
+};
+
+const columns: ColumnDefinition<TutorRow>[] = [
   { header: "Info", accessor: "info" },
   { header: "Apoderado", accessor: "apoderado" },
-  { header: "Celular", accessor: "phone1", className: "hidden lg:table-cell" },
+  { header: "Celular", accessor: "phone1", className: "hidden md:table-cell" },
   { header: "Tipo de Tutor", accessor: "type", className: "hidden md:table-cell" },
-  { header: "Hijos", accessor: "students", className: "hidden md:table-cell" },
-  { header: "Observación", accessor: "observation", className: "hidden md:table-cell" },
+  { header: "Hijos", accessor: "studentCount", className: "hidden md:table-cell" },
+  { header: "Observación", accessor: "observation", className: "hidden lg:table-cell" },
   { header: "Acciones", accessor: "actions" },
-]
+];
 
-const TutorTable = (
-  props: {
-    query: string;
-    currentPage?: number;
-  }
-) => {
+export default function TutorTable({
+  query,
+  currentPage = 1,
+}: {
+  query: string;
+  currentPage?: number;
+}) {
+  const [rows, setRows] = useState<TutorRow[]>([]);
+  const [meta, setMeta] = useState({
+    lastPage: 1,
+    page: 1,
+    total: 0,
+  });
+  const [loading, setLoading] = useState(true);
 
-  let { query, currentPage } = props
-  currentPage = currentPage || 1
+  const deferredRows = useDeferredValue(rows);
 
-  const tutorData: TutorListResponse = use(TutorService.getTutorsByPage(currentPage, ITEMS_PER_PAGE))
-  const allTutorsData: TutorListResponse = use(TutorService.getAllTutors())
+  const fetchData = async (page?: number, searchData?: boolean) => {
+    try {
+      setLoading(true);
 
-  const { data, meta }: TutorListResponse = Array.isArray(tutorData) ? tutorData[0] : tutorData
-  const { data: allTutors }: TutorListResponse = Array.isArray(allTutorsData) ? allTutorsData[0] : allTutorsData
+      page = page || currentPage;
+      let response: TutorListResponse;
 
-  const filteredData = query.length > 0
-    ? allTutors.filter((tutor) => `${tutor.firstName} ${tutor.lastName} ${tutor.dni}`.toLowerCase().includes(query.toLowerCase()))
-    : []
+      if (searchData && query.trim()) {
+        response = await TutorService.listTutors();
+      } else {
+        response = await TutorService.listTutorsByPage(page, ITEMS_PER_PAGE);
+      }
 
-  const filteredLastPage = query.length > 0 ? Math.ceil(filteredData.length / ITEMS_PER_PAGE) : meta.lastPage
-  const dataRender = !query ? data : filteredData
+      const { data, meta } = Array.isArray(response) ? response[0] : response;
 
-  const renderRow = (item: TutorWithStudent) => {
-    return (
-      <tr key={item.id} className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-green-50 ">
-        <td className="flex items-center gap-4 p-4">
-          <div className="flex flex-col">
-            <h3 className="font-semibold">{item.firstName} {item.lastName}</h3>
-            <p className="text-xs text-gray-500">DNI: {item.dni}</p>
-            <p className="text-xs text-gray-500">{item.email}</p>
-          </div>
-        </td>
-        <td className="p-1 hidden md:table-cell">
-          <div className="flex flex-col">
-            <h3 className="font-semibold">{item.otherFirstName} {item.otherLastName}</h3>
-            <p className="text-xs text-gray-500">Telefono: {item.otherPhone}</p>
-          </div>
-        </td>
-        <td className="p-2 hidden lg:table-cell">{item.phone1}</td>
-        <td className="p-2 hidden md:table-cell">{item.type}</td>
-        <td className="p-2 hidden md:table-cell">{item.students ? item.students.length : 0}</td>
-        <td className="p-2 hidden md:table-cell">{item.observation}</td>
-        <td>
-          <div className="flex items-start gap-2">
-            <Link href={`/list/tutors/${item.id}?page=${currentPage}`} className="w-full">
-              <Button
-                title="Editar Apoderado"
-                className="w-7 h-7 flex items-center justify-center rounded-full bg-blue-600 text-white hover:bg-blue-800 cursor-pointer">
-                <Pencil size={16} />
-              </Button>
-            </Link>
-          </div>
-        </td>
-      </tr>
-    )
+      const transformed: TutorRow[] = (data || [])
+        .filter((tutor: TutorListResponse["data"][number]) => {
+          if (!query.trim()) return true;
+
+          const fullName = `${tutor.firstName} ${tutor.lastName}`.toLowerCase();
+          const dni = `${tutor.dni || ""}`.toLowerCase();
+          const search = query.toLowerCase();
+
+          return fullName.includes(search) || dni.includes(search);
+        })
+        .map((tutor: TutorListResponse["data"][number]) => ({
+          id: tutor.id,
+          firstName: tutor.firstName,
+          lastName: tutor.lastName,
+          dni: tutor.dni,
+          email: tutor.email,
+          phone1: tutor.phone1,
+          type: tutor.type,
+          observation: tutor.observation,
+          studentCount: tutor.students?.length || 0,
+          info: `${tutor.firstName} ${tutor.lastName}`,
+          apoderado: `${tutor.firstName} ${tutor.lastName}`,
+          actions: "actions",
+        }));
+
+      setRows(transformed);
+
+      if (searchData && query.trim()) {
+        setMeta({
+          lastPage: 1,
+          page: 1,
+          total: transformed.length,
+        });
+      } else {
+        setMeta(meta);
+      }
+    } catch (error) {
+      console.error("Error cargando tutores:", error);
+      setRows([]);
+      setMeta({
+        lastPage: 1,
+        page: 1,
+        total: 0,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (query.trim()) {
+      fetchData(1, true);
+    } else {
+      fetchData(currentPage, false);
+    }
+  }, [query, currentPage]);
+
+  const renderRow = (item: TutorRow) => (
+    <tr
+      key={item.id}
+      className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-purple-50"
+    >
+      <td className="p-4">
+        <div className="flex flex-col">
+          <span className="font-semibold">
+            {item.firstName} {item.lastName}
+          </span>
+          <span className="text-xs text-gray-500">DNI: {item.dni || "-"}</span>
+          <span className="text-xs text-gray-500">{item.email || ""}</span>
+        </div>
+      </td>
+      <td>{item.firstName} {item.lastName}</td>
+      <td className="hidden md:table-cell">{item.phone1 || "No registrado"}</td>
+      <td className="hidden md:table-cell">{item.type}</td>
+      <td className="hidden md:table-cell">{item.studentCount}</td>
+      <td className="hidden lg:table-cell">{item.observation || "-"}</td>
+      <td>
+        <div className="flex items-center gap-2">
+          <Link href={`/list/tutors/${item.id}?page=${currentPage}`}>
+            <Button size="icon" className="w-7 h-7 rounded-full bg-blue-600 text-white">
+              <Pencil size={16} />
+            </Button>
+          </Link>
+        </div>
+      </td>
+    </tr>
+  );
+
+  if (loading) {
+    return <div>Cargando apoderados...</div>;
   }
 
   return (
     <>
-      <TableView
-        columns={columns}
-        renderRow={renderRow}
-        data={query.length > 0 ? dataRender.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE) : data}
-      />
-      {meta.total > ITEMS_PER_PAGE && (
+      <TableView columns={columns} renderRow={renderRow} data={deferredRows} />
+
+      {meta.total > ITEMS_PER_PAGE && !query.trim() && (
         <div className="mt-5 flex w-full justify-center">
-          <Pagination
-            totalPages={query.length > 0 ? filteredLastPage : meta.lastPage}
-          />
+          <Pagination totalPages={meta.lastPage} />
         </div>
       )}
     </>
-  )
+  );
 }
-
-export default TutorTable
-

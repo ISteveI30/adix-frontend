@@ -1,189 +1,149 @@
-"use client"
+"use client";
 
-import { CreatePaymentDto, PaymentMethod } from "@/api/interfaces/payment.interface"
-import { validatePaymentSchema } from "@/app/(dashboard)/list/payments/validate-payment"
-import { useActionState } from "react"
-import InputFieldUpdate from "../customs/InputFieldUpdate"
-import { Button } from "../ui/button"
+import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
+import { AccountReceivable } from "@/api/interfaces/account-receivable.interface";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { AccountReceivable } from "@/api/interfaces/account-receivable.interface"
-import { formatCurrency, formatDateToISO } from "@/lib/utils"
-import { PaymentService } from "@/api/models/payment/payment.api"
-import Swal from "sweetalert2"
-import { redirect } from "next/navigation"
-
+  CreatePaymentDto,
+  PaymentMethod,
+} from "@/api/interfaces/payment.interface";
+import { PaymentService } from "@/api/models/payment/payment.api";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export function PaymentForm({ data }: { data: AccountReceivable }) {
+  const router = useRouter();
 
-  const [isError, formAction, isPending] = useActionState(handleSubmit, null)
-  
-  if (!data) {
-    return <div>No hay datos</div>
-  }
+  const studentOrEnrollmentBackUrl = useMemo(() => {
+    if ((data as any)?.enrollmentId) {
+      return `/list/payments/${(data as any).enrollmentId}`;
+    }
+    if ((data as any)?.studentId) {
+      return `/list/enrollments`;
+    }
+    return `/list/enrollments`;
+  }, [data]);
 
-  async function handleSubmit (
-    _: unknown,
-    formData: FormData,
-  ) {
-    const rawData = Object.fromEntries(formData.entries())
-    const result = validatePaymentSchema.safeParse({
-      ...rawData,
-      accountReceivableId: data.id,
-      amountPaid: Number(rawData.amountPaid),
-    });
+  const [form, setForm] = useState<CreatePaymentDto>({
+    accountReceivableId: data.id,
+    dueDate: new Date().toISOString(),
+    amountPaid: Number(data.pendingBalance),
+    paymentDate: new Date().toISOString().slice(0, 10),
+    paymentMethod: PaymentMethod.EFECTIVO,
+    invoiceNumber: "",
+    notes: "",
+  });
+  const [saving, setSaving] = useState(false);
 
-    if (!result.success) {
-      console.error("Validation failed:", result.error);
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (Number(form.amountPaid) <= 0) {
+      toast.error("El monto debe ser mayor a 0");
       return;
     }
 
-    const parsedData: CreatePaymentDto = result.data;
-
-    Swal.fire({
-      title: '¿Estás seguro?',
-      text: "¿Quieres guardar los cambios?",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Sí, guardar cambios',
-      cancelButtonText: 'Cancelar',
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        const response = await PaymentService.createPayment(parsedData)
-        if (!response) {
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Error al guardar el pago',
-          })
-          return
-        }
-        Swal.fire({
-          icon: 'success',
-          title: 'Guardado',
-          text: 'Pago guardado correctamente',
-        })
-        handleCancel()
-      }
+    try {
+      setSaving(true);
+      await PaymentService.createPayment({
+        ...form,
+        dueDate: new Date(form.dueDate).toISOString(),
+        paymentDate: new Date(form.paymentDate).toISOString(),
+      });
+      toast.success("Pago registrado correctamente");
+      router.push(studentOrEnrollmentBackUrl);
+      router.refresh();
+    } catch (error: any) {
+      toast.error(error?.message || "No se pudo registrar el pago");
+    } finally {
+      setSaving(false);
     }
-    )
-  }
+  };
 
-  const handleCancel = () => {
-    redirect("/list/schedule/" + data.studentId)
-  }
-
-  if (isError) {
-    return <div>Error al guardar el pago</div>
-  }
-  
   return (
-    <form action={formAction} className="flex flex-col gap-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <input type="hidden" name="accountReceivableId" value={data.id} />
-
-        <InputFieldUpdate
-          name=""
-          label="Deuda Total"
-          type="text"
-          defaultValue={formatCurrency(data.pendingBalance)}
-          inputProps={{
-            readOnly: true,
-          }}
-        />
-        <InputFieldUpdate
-          name="dueDate"
-          label="Fecha de Vencimiento"
-          type="date"
-          defaultValue={data.dueDate.split("T")[0]}
-          inputProps={
-            {
-              min: new Date().toISOString().split("T")[0],
-              readOnly: true,
-            }
-          }
-        />
-        <InputFieldUpdate
-          name="invoiceNumber"
-          label="Número de Recibo (Ingrese el nombre que se asignará al recibo)"
-          type="text"
-        />
-        <InputFieldUpdate
-          name="paymentDate"
-          label="Fecha de Pago"
-          type="date"
-          defaultValue={formatDateToISO(new Date())}
-          inputProps={{
-            max: data.dueDate.split("T")[0],
-          }}
-        />
-        <div className="flex flex-col gap-4">
-          <label className="text-xs text-gray-500">Método de pago</label>
-          <Select
-            name="paymentMethod"
-            defaultValue={PaymentMethod.EFECTIVO}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecciona un Método de Pago" />
-            </SelectTrigger>
-            <SelectContent >
-              {Object.values(PaymentMethod).map((method) => (
-                <SelectItem key={method} value={method}>
-                  {method}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+    <form onSubmit={onSubmit} className="space-y-6 rounded-xl border bg-white p-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="text-sm font-medium">Concepto</label>
+          <Input value={data.concept} disabled />
         </div>
-
-        <InputFieldUpdate
-          name="amountPaid"
-          label="Monto (Especifique el monto que pagará)"
-          type="number"
-          defaultValue={data.pendingBalance}
-          inputProps={{
-            min: 0,
-            step: 0.01,
-            //max: data.pendingBalance,
-            pattern: "[0-9]*",
-          }}
-        />
+        <div>
+          <label className="text-sm font-medium">Saldo Pendiente</label>
+          <Input value={String(data.pendingBalance)} disabled />
+        </div>
+        <div>
+          <label className="text-sm font-medium">Monto a pagar</label>
+          <Input
+            type="number"
+            step="0.01"
+            value={form.amountPaid}
+            onChange={(e) =>
+              setForm((prev) => ({ ...prev, amountPaid: Number(e.target.value) }))
+            }
+          />
+        </div>
+        <div>
+          <label className="text-sm font-medium">Fecha de pago</label>
+          <Input
+            type="date"
+            value={form.paymentDate.slice(0, 10)}
+            onChange={(e) =>
+              setForm((prev) => ({ ...prev, paymentDate: e.target.value }))
+            }
+          />
+        </div>
+        <div>
+          <label className="text-sm font-medium">Método de pago</label>
+          <select
+            className="w-full h-10 rounded-md border px-3"
+            value={form.paymentMethod}
+            onChange={(e) =>
+              setForm((prev) => ({
+                ...prev,
+                paymentMethod: e.target.value as PaymentMethod,
+              }))
+            }
+          >
+            {Object.values(PaymentMethod).map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="text-sm font-medium">Número de recibo</label>
+          <Input
+            value={form.invoiceNumber}
+            onChange={(e) =>
+              setForm((prev) => ({ ...prev, invoiceNumber: e.target.value }))
+            }
+            placeholder="Opcional"
+          />
+        </div>
+        <div className="md:col-span-2">
+          <label className="text-sm font-medium">Notas</label>
+          <Input
+            value={form.notes}
+            onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))}
+          />
+        </div>
       </div>
 
-      <div className="flex flex-col gap-4">
-        <InputFieldUpdate
-          name="notes"
-          label="Notas"
-          type="text"
-          defaultValue={data.concept}
-        />
+      <div className="rounded-lg bg-muted p-4 text-sm text-muted-foreground">
+        Si pagas un monto mayor al saldo de esta cuota, el sistema aplicará el excedente a las
+        siguientes cuotas pendientes de la misma matrícula.
       </div>
-      <div className="flex flex-col sm:flex-row justify-around gap-3">
-        <Button
-          type="button"
-          onClick={handleCancel}
-          variant="destructive"
-          className="bg-red-500 text-white rounded-md p-4 cursor-pointer"
-          disabled={isPending}
-        >
+
+      <div className="flex justify-end gap-3">
+        <Button type="button" variant="outline" onClick={() => router.push(studentOrEnrollmentBackUrl)}>
           Cancelar
         </Button>
-        <Button
-          type="submit"
-          className="bg-blue-500 text-white rounded-md p-2 cursor-pointer"
-          disabled={isPending}
-        >
-          {isPending ? 'Guardando...' : 'Guardar Cambios'}
+        <Button type="submit" disabled={saving}>
+          {saving ? "Guardando..." : "Registrar Pago"}
         </Button>
       </div>
     </form>
-  )
-
+  );
 }

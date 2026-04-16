@@ -1,54 +1,120 @@
-import { InterestedColumns, InterestedListResponse } from "@/api/interfaces/interested.interface";
-import { fetchWrapper } from "@/api/services/api";
+import fetchWrapper from "@/api/services/api";
 import { InterestedSchema } from "@/app/(dashboard)/list/interested/validate.interested";
 
+export interface InterestedListResponse {
+  data: InterestedSchema[];
+  meta: {
+    total: number;
+    lastPage: number;
+    page: number;
+  };
+}
+
+function stripEmpty<T extends Record<string, unknown>>(obj: T) {
+  return Object.fromEntries(
+    Object.entries(obj).filter(
+      ([, value]) => value !== "" && value !== null && value !== undefined,
+    ),
+  ) as Partial<T>;
+}
+
+function sanitizeInterestedPayload(data?: Partial<InterestedSchema>) {
+  const safeData = data ?? {};
+
+  return stripEmpty({
+    firstName: safeData.firstName,
+    lastName: safeData.lastName,
+    email: safeData.email,
+    phone1: safeData.phone1,
+    phone2: safeData.phone2,
+    careerId: safeData.careerId,
+    cycleId: safeData.cycleId,
+  });
+}
+
 export class InterestedService {
-
-  static async getAll(): Promise<InterestedListResponse> {
-    const response = await fetchWrapper<InterestedListResponse>(`/interested`);
-    return response
+  static async listInterested(): Promise<InterestedListResponse> {
+    return await fetchWrapper<InterestedListResponse>("/interested");
   }
 
-  static async getByPage(page: number, limit: number): Promise<InterestedListResponse> {
-    const response = await fetchWrapper<InterestedListResponse>(`/interested?page=${page}&limit=${limit}`);
-    return response
+  static async listInterestedByPage(
+    page: number,
+    limit: number,
+  ): Promise<InterestedListResponse> {
+    return await fetchWrapper<InterestedListResponse>(
+      `/interested?page=${page}&limit=${limit}`,
+    );
   }
-  static async create(interested: Omit<InterestedSchema, "id">): Promise<InterestedSchema> {
-    const response = await fetchWrapper<InterestedSchema>(`/interested`, {
+
+  static async getInterestedById(id: string): Promise<InterestedSchema> {
+    return await fetchWrapper<InterestedSchema>(`/interested/${id}`);
+  }
+
+  static async createInterested(
+    data: InterestedSchema,
+  ): Promise<InterestedSchema> {
+    const payload = sanitizeInterestedPayload(data);
+
+    return await fetchWrapper<InterestedSchema>("/interested", {
       method: "POST",
-      body: interested,
+      body: payload,
     });
-    return response
   }
 
-  static async update(interested: InterestedSchema): Promise<InterestedSchema> {
-    const { id, ...rest } = interested
-    const response = await fetchWrapper<InterestedSchema>(`/interested/${id}`, {
+  static async updateInterested(
+    idOrData: string | Partial<InterestedSchema>,
+    maybeData?: Partial<InterestedSchema>,
+  ): Promise<InterestedSchema> {
+    const id =
+      typeof idOrData === "string"
+        ? idOrData
+        : String((idOrData as Partial<InterestedSchema>)?.id || "");
+
+    if (!id) {
+      throw new Error("El id del interesado es requerido para actualizar");
+    }
+
+    const payload =
+      typeof idOrData === "string"
+        ? sanitizeInterestedPayload(maybeData)
+        : sanitizeInterestedPayload(idOrData);
+
+    return await fetchWrapper<InterestedSchema>(`/interested/${id}`, {
       method: "PATCH",
-      body: rest,
+      body: payload,
     });
-    return response
   }
 
-  static async deleteOld(): Promise<InterestedSchema> {
-    const response = await fetchWrapper<InterestedSchema>(`/interested/old`, {
-      method: "DELETE",
-    });
-    return response
+  static async deleteInterested(
+    id: string,
+  ): Promise<InterestedSchema | { message?: string }> {
+    return await fetchWrapper<InterestedSchema | { message?: string }>(
+      `/interested/${id}`,
+      {
+        method: "DELETE",
+      },
+    );
   }
 
-  static async delete(id: string): Promise<InterestedSchema> {
-    const response = await fetchWrapper<InterestedSchema>(`/interested/${id}`, {
-      method: "DELETE",
-    });
-    return response
+  // Compatibilidad con código existente
+  static async create(data: InterestedSchema): Promise<InterestedSchema> {
+    return this.createInterested(data);
   }
 
-  static async getById(id: string): Promise<InterestedColumns> {
-    const response = await fetchWrapper<InterestedColumns>(`/interested/${id}`);
-    return response
+  static async update(
+    idOrData: string | Partial<InterestedSchema>,
+    maybeData?: Partial<InterestedSchema>,
+  ): Promise<InterestedSchema> {
+    return this.updateInterested(idOrData, maybeData);
   }
 
+  static async remove(
+    id: string,
+  ): Promise<InterestedSchema | { message?: string }> {
+    return this.deleteInterested(id);
+  }
 
-  
+  static async getById(id: string): Promise<InterestedSchema> {
+    return this.getInterestedById(id);
+  }
 }

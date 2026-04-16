@@ -1,53 +1,74 @@
-import { AccountReceivable } from "./account-receivable.interface"
+import { AccountReceivable } from "./account-receivable.interface";
 
 export enum PaymentStatus {
   PENDIENTE = "PENDIENTE",
   PAGADO = "PAGADO",
   VENCIDO = "VENCIDO",
-  ANULADO = "ANULADO"
+  ANULADO = "ANULADO",
 }
 
 export enum PaymentMethod {
   EFECTIVO = "EFECTIVO",
   TRANSFERENCIA_BANCARIA = "TRANSFERENCIA_BANCARIA",
   TARJETA = "TARJETA",
-  YAPE = "YAPE"
+  YAPE = "YAPE",
+  PLIN = "PLIN",
 }
 
 export interface PaymentDto {
-  id: string
-  accountReceivableId: string
-  invoiceNumber: string
-  dueDate: string
-  amountPaid: number
-  paymentDate?: string
-  paymentMethod: PaymentMethod
-  status: PaymentStatus
-  notes?: string
+  id: string;
+  accountReceivableId: string;
+  invoiceNumber: string;
+  dueDate: string;
+  amountPaid: number;
+  paymentDate?: string;
+  paymentMethod: PaymentMethod;
+  status: PaymentStatus;
+  notes?: string;
+  accountReceivable?: AccountReceivable & {
+    student?: {
+      id: string;
+      firstName: string;
+      lastName: string;
+    };
+    enrollment?: {
+      id: string;
+      codeStudent?: string;
+    };
+  };
 }
 
 export interface PaymentAnulateDto {
-  success: boolean
-  message: string
+  success: boolean;
+  message: string;
 }
 
 export interface CreatePaymentDto {
-  id?: string
-  accountReceivableId: string
-  invoiceNumber?: string
-  dueDate: string
-  amountPaid: number
-  paymentDate?: string
-  paymentMethod?: PaymentMethod
-  status: PaymentStatus
-  notes?: string
+  id?: string;
+  accountReceivableId: string;
+  invoiceNumber?: string;
+  dueDate: string;
+  amountPaid: number;
+  paymentDate: string;
+  paymentMethod: PaymentMethod;
+  notes?: string;
 }
 
 export interface UpdatePaymentDto {
-  id: string
-  invoiceNumber?: string
-  paymentDate?: string
-  paymentMethod?: PaymentMethod
-  notes?: string
-  accountReceivable?: AccountReceivable
+  id: string;
+  invoiceNumber?: string;
+  paymentDate?: string;
+  paymentMethod?: PaymentMethod;
+  notes?: string;
+  accountReceivable?: AccountReceivable & {
+    student?: {
+      id: string;
+      firstName: string;
+      lastName: string;
+    };
+    enrollment?: {
+      id: string;
+      codeStudent?: string;
+    };
+  };
 }

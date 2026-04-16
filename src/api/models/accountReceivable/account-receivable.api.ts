@@ -1,31 +1,24 @@
-import { AccountReceivable, CreateAccountReceivable } from "@/api/interfaces/account-receivable.interface"
-import fetchWrapper from "@/api/services/api"
+import { AccountReceivable } from "@/api/interfaces/account-receivable.interface";
+import fetchWrapper from "@/api/services/api";
 
 export class AccountReceivableService {
-  
-  static  listAccountReceivablesByStudent(id: string){
-    const data  =  fetchWrapper<AccountReceivable[]>(`/account-receivables/student/${id}`)   
-    return data
+  static async listAccountReceivables() {
+    return await fetchWrapper<AccountReceivable[]>("/account-receivables");
+  }
+
+  static async getAccountReceivableById(id: string) {
+    return await fetchWrapper<AccountReceivable>(`/account-receivables/${id}`);
   }
 
   static async listAccountReceivablesByCodeStudent(codeStudent: string) {
-    const data = await fetchWrapper<AccountReceivable[]>(`/account-receivables/codeStudent/${codeStudent}`)
-    return data
+    return await fetchWrapper<AccountReceivable[]>(
+      `/account-receivables/codeStudent/${codeStudent}`,
+    );
   }
 
-  static async listAccountReceivables() {
-    const data = await fetchWrapper<AccountReceivable[]>("/account-receivables")
-    return data
-  }
-  
-  static async getAccountReceivableById(id: string) {
-    return fetchWrapper<AccountReceivable>(`/account-receivables/${id}`)
-  }
-
-  static async createAccountReceivable(data: AccountReceivable) {
-    return await fetchWrapper<AccountReceivable>("/account-receivables", {
-      method: "POST",
-      body: data,
-    })
+  static async listAccountReceivablesByStudentId(studentId: string) {
+    return await fetchWrapper<AccountReceivable[]>(
+      `/account-receivables/student/${studentId}`,
+    );
   }
 }

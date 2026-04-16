@@ -1,141 +1,157 @@
-"use client"
-import TableView, { ColumnDefinition } from '@/components/customs/TableView'
-import React, { use, useEffect, useState } from 'react'
-import { ROLE } from "@/lib/data";
-import { InterestedService } from '@/api/models/interested/interested.api'
-import Pagination from '@/components/customs/Pagination'
-import { Pencil, Trash2Icon } from 'lucide-react'
-import { ITEMS_PER_PAGE } from '@/api/services/api'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { InterestedColumns, InterestedListResponse } from '@/api/interfaces/interested.interface'
-import Swal from 'sweetalert2';
+"use client";
 
-const interestedColumns: ColumnDefinition<InterestedColumns>[] = [
-  { header: "Datos", accessor: "info" },
-  { header: "Email", accessor: "email" },
-  { header: "Teléfono 2", accessor: "phone2", className: "hidden md:table-cell" },
+import { InterestedSchema } from "./validate.interested";
+import {
+  InterestedService,
+  InterestedListResponse,
+} from "@/api/models/interested/interested.api";
+import { ITEMS_PER_PAGE } from "@/api/services/api";
+import Pagination from "@/components/customs/Pagination";
+import TableView, { ColumnDefinition } from "@/components/customs/TableView";
+import { Button } from "@/components/ui/button";
+import { Pencil } from "lucide-react";
+import Link from "next/link";
+import { useDeferredValue, useEffect, useState } from "react";
+
+type InterestedRow = InterestedSchema & {
+  id: string;
+  data: string;
+  actions: string;
+};
+
+const columns: ColumnDefinition<InterestedRow>[] = [
+  { header: "Datos", accessor: "data" },
+  { header: "Email", accessor: "email", className: "hidden md:table-cell" },
+  { header: "Teléfono", accessor: "phone1", className: "hidden md:table-cell" },
   { header: "Acciones", accessor: "actions" },
-]
+];
 
-
-interface Props {
+export default function InterestedTable({
+  query,
+  currentPage = 1,
+}: {
   query: string;
   currentPage?: number;
-}
-
-const InterestedTable = ({ query, currentPage = 1 }: Props) => {
-  const [all, setAll] = useState<InterestedListResponse | null>(null);
-  const [page, setPage] = useState<InterestedListResponse | null>(null);
+}) {
+  const [rows, setRows] = useState<InterestedRow[]>([]);
+  const [meta, setMeta] = useState({
+    lastPage: 1,
+    page: 1,
+    total: 0,
+  });
   const [loading, setLoading] = useState(true);
 
-  // Traer todos 
-  useEffect(() => {
-    InterestedService.getAll()
-      .then(res => setAll(res))
-      .catch(console.error);
-  }, []);
+  const deferredRows = useDeferredValue(rows);
 
-  // Traer página actual
-  useEffect(() => {
-    setLoading(true);
-    InterestedService.getByPage(currentPage, ITEMS_PER_PAGE)
-      .then(res => {
-        setPage(res);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
-        setLoading(false);
+  const fetchData = async (page?: number, searchData?: boolean) => {
+    try {
+      setLoading(true);
+
+      page = page || currentPage;
+      let response: InterestedListResponse;
+
+      if (searchData && query.trim()) {
+        response = await InterestedService.listInterested();
+      } else {
+        response = await InterestedService.listInterestedByPage(page, ITEMS_PER_PAGE);
+      }
+
+      const { data, meta } = Array.isArray(response) ? response[0] : response;
+
+      const filtered: InterestedRow[] = (data || [])
+        .filter((item: InterestedSchema) => {
+          if (!query.trim()) return true;
+
+          const fullName = `${item.firstName} ${item.lastName}`.toLowerCase();
+          const email = `${item.email || ""}`.toLowerCase();
+          const phone1 = `${item.phone1 || ""}`.toLowerCase();
+          const search = query.toLowerCase();
+
+          return (
+            fullName.includes(search) ||
+            email.includes(search) ||
+            phone1.includes(search)
+          );
+        })
+        .map((item: InterestedSchema) => ({
+          ...item,
+          id: item.id || "",
+          data: `${item.firstName} ${item.lastName}`,
+          actions: "actions",
+        }));
+
+      setRows(filtered);
+
+      if (searchData && query.trim()) {
+        setMeta({
+          lastPage: 1,
+          page: 1,
+          total: filtered.length,
+        });
+      } else {
+        setMeta(meta);
+      }
+    } catch (error) {
+      console.error("Error cargando interesados:", error);
+      setRows([]);
+      setMeta({
+        lastPage: 1,
+        page: 1,
+        total: 0,
       });
-  }, [currentPage]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  if (loading || !all || !page) {
-    return <div>Cargando interesados…</div>;
-  }
+  useEffect(() => {
+    if (query.trim()) {
+      fetchData(1, true);
+    } else {
+      fetchData(currentPage, false);
+    }
+  }, [query, currentPage]);
 
-  // Lógica de búsqueda / paginación
-  const filteredData = query
-    ? all.data.filter(i =>
-      `${i.firstName} ${i.lastName} ${i.email}`.toLowerCase().includes(query.toLowerCase())
-    )
-    : [];
-  const totalPages = query
-    ? Math.ceil(filteredData.length / ITEMS_PER_PAGE)
-    : page.meta.lastPage;
-  const dataToRender = query ? filteredData : page.data;
+  const renderRow = (item: InterestedRow) => (
+    <tr
+      key={item.id}
+      className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-purple-50"
+    >
+      <td className="p-4">
+        <div className="flex flex-col">
+          <span className="font-semibold">
+            {item.firstName} {item.lastName}
+          </span>
+          <span className="text-xs text-gray-500">{item.phone1 || "-"}</span>
+        </div>
+      </td>
+      <td className="hidden md:table-cell">{item.email || "-"}</td>
+      <td className="hidden md:table-cell">{item.phone1 || "-"}</td>
+      <td>
+        <div className="flex items-center gap-2">
+          <Link href={`/list/interested/edit/${item.id}?page=${currentPage}`}>
+            <Button size="icon" className="w-7 h-7 rounded-full bg-blue-600 text-white">
+              <Pencil size={16} />
+            </Button>
+          </Link>
+        </div>
+      </td>
+    </tr>
+  );
 
-  // Eliminar
-  async function handleDelete(id: string) {
-    const result = await Swal.fire({
-      title: "¿Está seguro?",
-      text: "¡No podrás revertir esto!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Sí, eliminar",
-    });
-    if (!result.isConfirmed) return;
-
-    await InterestedService.delete(id);
-    setPage(prev => ({
-      ...prev!,
-      data: prev!.data.filter(item => item.id !== id),
-      meta: { ...prev!.meta, total: prev!.meta.total - 1 }
-    }));
-    Swal.fire("¡Eliminado!", "Se ha borrado el interesado.", "success");
-  }
-
-  const renderRow = (item: InterestedColumns) => {
-    return (
-      <tr key={item.id} className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-green-50 ">
-        <td className="flex items-center gap-4 p-4">
-          <div className="flex flex-col">
-            <h3 className="font-semibold">{item.firstName} {item.lastName}</h3>
-            <p className="text-xs text-gray-500">{item.phone1}</p>
-          </div>
-        </td>
-        <td className="p-2">{item.email}</td>
-        <td className="p-2">{item.phone2}</td>
-        <td className="apx-6 py-4 align-middle text-left">
-          <div className="inline-flex items-end space-x-2 mt-1">
-            <Link href={`/list/interested/edit/${item.id}?page=${currentPage}`}>
-              <Button 
-                title='Editar Interesado'
-                className="w-7 h-7 flex items-center justify-center rounded-full bg-blue-600 text-white hover:bg-blue-800 cursor-pointer">
-                <Pencil  size={16} />
-              </Button>
-            </Link>
-            {ROLE === "admin" && (
-              <Button
-                title="Eliminar"
-                onClick={() => handleDelete(item.id!)}
-                className="w-7 h-7 flex items-center justify-center rounded-full bg-red-600 text-white hover:bg-red-800 cursor-pointer"
-              >
-                <Trash2Icon size={16} />
-              </Button>
-            )}
-          </div>
-        </td>
-      </tr>
-    )
+  if (loading) {
+    return <div>Cargando interesados...</div>;
   }
 
   return (
     <>
-      <TableView
-        columns={interestedColumns}
-        renderRow={renderRow}
-        data={dataToRender}
-      />
-      {page.meta.total > ITEMS_PER_PAGE && (
+      <TableView columns={columns} renderRow={renderRow} data={deferredRows} />
+
+      {meta.total > ITEMS_PER_PAGE && !query.trim() && (
         <div className="mt-5 flex w-full justify-center">
-          <Pagination
-            totalPages={totalPages}
-          />
+          <Pagination totalPages={meta.lastPage} />
         </div>
       )}
     </>
-  )
+  );
 }
-
-export default InterestedTable

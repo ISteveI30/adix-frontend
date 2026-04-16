@@ -1,13 +1,13 @@
-import { Suspense } from 'react';
-import PaymentTable from '../paymentTable';
+import { Suspense } from "react";
+import PaymentTable from "../paymentTable";
 
 interface PageProps {
   params: Promise<{
     id: string;
   }>;
 }
-const PaymentListPage = async ({ params }: PageProps) => {
 
+const PaymentListPage = async ({ params }: PageProps) => {
   const { id } = await params;
 
   return (
@@ -15,11 +15,10 @@ const PaymentListPage = async ({ params }: PageProps) => {
       <h1 className="text-2xl font-bold">Pagos realizados</h1>
 
       <div className="overflow-x-auto">
-        <Suspense key={id} fallback={<div className="p-4 text-center">Cargando Pagos...</div>}>
-          <PaymentTable id={id} />
+        <Suspense key={id} fallback={<div className="p-4 text-center">Cargando pagos...</div>}>
+          <PaymentTable enrollmentId={id} />
         </Suspense>
       </div>
-
     </div>
   );
 };

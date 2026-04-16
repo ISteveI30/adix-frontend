@@ -1,19 +1,16 @@
-import React, { Suspense, use } from 'react'
-import TutorTable from './tutorTable'
-import Search from '@/components/forms/EnrollmentSearchForm'
-import { TutorSkeleton } from '@/components/customs/SkeletonTables'
+import { Suspense } from "react";
+import Search from "@/components/forms/EnrollmentSearchForm";
+import TutorTable from "./tutorTable";
 
-interface TutorListPageProps {
-  searchParams?: Promise<{ query?: string, page?: string }>
-}
- 
-const TutorListPage = (
-  props: TutorListPageProps
-) => {
-
-  const searchParams = use(props.searchParams!)
-  const query = searchParams?.query || ''
-  const currentPage = Number(searchParams?.page) || 1
+const TutorListPage = async (props: {
+  searchParams?: Promise<{
+    query?: string;
+    page?: string;
+  }>;
+}) => {
+  const searchParams = await props.searchParams;
+  const query = searchParams?.query || "";
+  const currentPage = Number(searchParams?.page) || 1;
 
   return (
     <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
@@ -23,12 +20,15 @@ const TutorListPage = (
           <Search placeholder="Buscar Apoderado..." />
         </div>
       </div>
-      <Suspense key={query + currentPage} fallback={<TutorSkeleton />}>
+
+      <Suspense
+        key={`${query}-${currentPage}`}
+        fallback={<div className="p-4 text-center">Cargando apoderados...</div>}
+      >
         <TutorTable query={query} currentPage={currentPage} />
       </Suspense>
-
     </div>
-  )
-}
+  );
+};
 
-export default TutorListPage
+export default TutorListPage;

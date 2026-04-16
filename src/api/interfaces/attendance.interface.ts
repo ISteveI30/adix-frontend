@@ -1,15 +1,42 @@
-export enum StatusAttendance {
-  ASISTIO = 'ASISTIO',
-  TARDANZA = 'TARDANZA',
-  FALTA = 'FALTA',
-  FALTA_JUSTIFICADA = 'FALTA_JUSTIFICADA',
-}
+export type AttendanceRow = {
+  id: string;
+  studentId: string;
+  fullName: string;
+  barcodeValue?: string | null;
+  admissionName?: string | null;
+  cycleName: string;
+  careerName: string;
+  shift?: string | null;
+  attendanceId: string | null;
+  entryTime: string | null;
+  status: string | null;
+  notes: string | null;
+  canJustify: boolean;
+};
 
+export type ScanAttendanceResponse = {
+  message: string;
+  attendance: {
+    id: string;
+    entryTime?: string;
+    status: string;
+  };
+  student: {
+    id: string;
+    fullName: string;
+    barcodeValue?: string;
+    cycleName: string;
+    careerName: string;
+    shift?: string;
+  };
+};
 
-export interface Attendance {
-    studentId: string;
-    date: string;
-    present: boolean;
-    status: StatusAttendance;
-}
-
+export type BarcodeCardRow = {
+  id: string;
+  fullName: string;
+  barcodeValue: string;
+  admissionName?: string;
+  cycleName: string;
+  careerName: string;
+  codeStudent: string;
+};

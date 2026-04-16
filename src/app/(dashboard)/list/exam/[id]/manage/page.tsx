@@ -1,360 +1,494 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import Swal from "sweetalert2";
 import { Button } from "@/components/ui/button";
 import { ExamService } from "@/api/models/exam/exam.api";
 import { EnrollmentService } from "@/api/models/enrollment/enrollment.api";
 import { InterestedService } from "@/api/models/interested/interested.api";
 import { getAreas, getCareersByArea } from "@/api/models/areas/areas.api";
-import type { PaymentMethod, PaymentStatus, RosterRow } from "@/api/interfaces/exam.interface";
+import { TypeExam } from "@/api/interfaces/exam.interface";
 
-type Exam = { id: string; title: string; modality: string; type: string; cycleId: string; };
-type Row = {
-  key: string; // studentId o "ext-{id}"
+type CandidateRow = {
+  id: string;
   firstName: string;
   lastName: string;
   type: "Matriculado" | "Externo";
   careerId?: string;
   careerName?: string;
   areaId?: string;
-  assigned: boolean; // Estado
 };
 
-type PayFields = { amountPaid: number | null; typePaid: PaymentMethod | null; statusPaid: PaymentStatus | null; };
+type PaymentRow = {
+  detailId: string;
+  amountPaid: number | null;
+  typePaid: string | null;
+  statusPaid: string | null;
+};
 
 export default function ManageExamPage() {
-  const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const params = useParams();
+  const id = String(params.id);
 
-  const [exam, setExam] = useState<Exam | null>(null);
+  const [exam, setExam] = useState<any>(null);
   const [title, setTitle] = useState("");
-
-  const [rows, setRows] = useState<Row[]>([]);
+  const [roster, setRoster] = useState<any[]>([]);
+  const [candidates, setCandidates] = useState<CandidateRow[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
-
-  // mapa de asignados => detailId + pagos actuales
-  const [assignedMap, setAssignedMap] = useState<Record<string, { detailId: string } & PayFields>>({});
-  // estado editable de pagos por detailId
-  const [payments, setPayments] = useState<Record<string, PayFields>>({});
-
-  // filtros
   const [areaId, setAreaId] = useState("");
   const [careerId, setCareerId] = useState("");
   const [areas, setAreas] = useState<Array<{ id: string; name: string }>>([]);
   const [careers, setCareers] = useState<Array<{ id: string; name: string }>>([]);
+  const [payments, setPayments] = useState<PaymentRow[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const headerChkRef = useRef<HTMLInputElement>(null);
 
-  // Cargar examen + roster + elegibles
-  useEffect(() => {
-    (async () => {
-      const e = await ExamService.getById(id);
-      setExam(e);
-      setTitle(e.title);
+  const loadExam = async () => {
+    const [examData, rosterData] = await Promise.all([
+      ExamService.getById(id),
+      ExamService.roster(id),
+    ]);
 
-      setAreas((await getAreas()) ?? []);
-
-      // roster actual
-      const roster: RosterRow[] = await ExamService.getRoster(id);
-
-      const assignedSet = new Set(roster.map(r => r.personKey));
-      const _assignedMap: Record<string, { detailId: string } & PayFields> = {};
-      const _payments: Record<string, PayFields> = {};
-
-      for (const r of roster) {
-        if (!r.detailId) continue;
-        const p: PayFields = {
-          amountPaid: r.amountPaid ?? 0,
-          typePaid: r.typePaid ?? null,
-          statusPaid: r.statusPaid ?? null,
-        };
-        _assignedMap[r.personKey] = { detailId: r.detailId, ...p };
-        _payments[r.detailId] = { ...p };
-      }
-      setAssignedMap(_assignedMap);
-      setPayments(_payments);
-
-      // elegibles (matriculados del ciclo/mod y, si es simulacro, interesados del ciclo)
-      const enrollments = await EnrollmentService.listActives({
-        cycleId: e.cycleId,
-        modality: e.modality,
-      });
-      const stds: Row[] = (Array.isArray(enrollments) ? enrollments : []).map((en: any) => ({
-        key: en?.student?.id,
-        firstName: en?.student?.firstName ?? "",
-        lastName: en?.student?.lastName ?? "",
-        type: "Matriculado",
-        careerId: en?.career?.id,
-        careerName: en?.career?.name,
-        areaId: en?.career?.areaId,
-        assigned: assignedSet.has(en?.student?.id),
-      }));
-
-      let exts: Row[] = [];
-      if (e.type === "SIMULACRO") {
-        const page = await InterestedService.getByPage(1, 500);
-        exts = page.data
-          .filter((i: any) => (i.cycle?.id ?? i.cycleId) === e.cycleId)
-          .map((i: any) => ({
-            key: `ext-${i.id}`,
-            firstName: i.firstName, lastName: i.lastName,
-            type: "Externo",
-            careerId: i.career?.id ?? i.careerId,
-            careerName: i.career?.name ?? "-",
-            areaId: i.career?.areaId ?? i.career?.area?.id,
-            assigned: assignedSet.has(`ext-${i.id}`),
-          }));
-      }
-
-      setRows([...stds, ...exts]);
-    })();
-  }, [id]);
-
-  // cargar carreras según área
-  useEffect(() => {
-    (async () => {
-      if (!areaId) { setCareers([]); setCareerId(""); return; }
-      setCareers((await getCareersByArea(areaId)) ?? []);
-      setCareerId("");
-    })();
-  }, [areaId]);
-
-  const filteredRows = useMemo(
-    () => rows.filter(r => (!areaId || r.areaId === areaId) && (!careerId || r.careerId === careerId)),
-    [rows, areaId, careerId]
-  );
-  const visibleIds = useMemo(() => filteredRows.map(r => r.key), [filteredRows]);
-
-  const allVisibleSelected = useMemo(
-    () => visibleIds.length > 0 && visibleIds.every(id => selected.includes(id)),
-    [visibleIds, selected]
-  );
-  const someVisibleSelected = useMemo(
-    () => visibleIds.some(id => selected.includes(id)) && !allVisibleSelected,
-    [visibleIds, selected, allVisibleSelected]
-  );
-  useEffect(() => { if (headerChkRef.current) headerChkRef.current.indeterminate = someVisibleSelected; }, [someVisibleSelected]);
-
-  const toggle = (id: string) => setSelected(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
-  const toggleAllVisible = () => {
-    setSelected(prev => allVisibleSelected
-      ? prev.filter(id => !visibleIds.includes(id))
-      : Array.from(new Set([...prev, ...visibleIds])));
+    setExam(examData);
+    setTitle(examData.title);
+    setRoster(rosterData);
+    setPayments(
+      rosterData.map((r) => ({
+        detailId: r.detailId,
+        amountPaid: r.amountPaid ?? null,
+        typePaid: r.typePaid ?? null,
+        statusPaid: r.statusPaid ?? null,
+      })),
+    );
   };
 
-  // Guardar título
-  const saveTitle = async () => {
-    if (!exam) return;
-    if (title.trim() && title.trim() !== exam.title) {
-      await ExamService.updateTitle(exam.id, title.trim());
-      await Swal.fire({ icon: "success", title: "Nombre actualizado" });
+  useEffect(() => {
+    const init = async () => {
+      try {
+        setLoading(true);
+        await loadExam();
+        const areasData = await getAreas();
+        setAreas(areasData);
+      } catch (error) {
+        console.error(error);
+        Swal.fire("Error", "No se pudo cargar el examen", "error");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    init();
+  }, [id]);
+
+  useEffect(() => {
+    const loadCareers = async () => {
+      if (!areaId) {
+        setCareers([]);
+        setCareerId("");
+        return;
+      }
+
+      const data = await getCareersByArea(areaId);
+      setCareers(data);
+    };
+
+    loadCareers();
+  }, [areaId]);
+
+  useEffect(() => {
+    const loadCandidates = async () => {
+      if (!exam) return;
+
+      if (exam.type === TypeExam.SIMULACRO) {
+        const response = await InterestedService.listInterested();
+        const list = Array.isArray(response.data) ? response.data : [];
+
+        setCandidates(
+          list.map((item: any) => ({
+            id: item.id,
+            firstName: item.firstName,
+            lastName: item.lastName,
+            type: "Externo",
+            careerId: item.career?.id,
+            careerName: item.career?.name,
+            areaId: item.career?.areaId,
+          })),
+        );
+      } else {
+        const response = await EnrollmentService.listEnrollments();
+        const list = Array.isArray(response.data) ? response.data : [];
+        const filtered = list.filter((item: any) => item.cycleId === exam.cycleId);
+
+        const uniqueMap = new Map<string, CandidateRow>();
+
+        for (const item of filtered) {
+          if (!uniqueMap.has(item.studentId)) {
+            uniqueMap.set(item.studentId, {
+              id: item.studentId,
+              firstName: item.student?.firstName || "",
+              lastName: item.student?.lastName || "",
+              type: "Matriculado",
+              careerId: item.career?.id,
+              careerName: item.career?.name,
+              areaId: item.career?.areaId,
+            });
+          }
+        }
+
+        setCandidates(Array.from(uniqueMap.values()));
+      }
+    };
+
+    loadCandidates();
+  }, [exam]);
+
+  const currentAssignedIds = useMemo(() => {
+    return roster.map((r) => {
+      if (r.personKey.startsWith("ext-")) return r.personKey.replace("ext-", "");
+      return r.personKey;
+    });
+  }, [roster]);
+
+  const filteredCandidates = useMemo(() => {
+    return candidates
+      .filter((c) => !currentAssignedIds.includes(c.id))
+      .filter(
+        (c) =>
+          (!areaId || c.areaId === areaId) &&
+          (!careerId || c.careerId === careerId),
+      );
+  }, [candidates, currentAssignedIds, areaId, careerId]);
+
+  const visibleIds = useMemo(() => filteredCandidates.map((r) => r.id), [filteredCandidates]);
+
+  const allVisibleSelected = useMemo(
+    () => visibleIds.length > 0 && visibleIds.every((id) => selected.includes(id)),
+    [visibleIds, selected],
+  );
+
+  const someVisibleSelected = useMemo(
+    () => visibleIds.some((id) => selected.includes(id)) && !allVisibleSelected,
+    [visibleIds, selected, allVisibleSelected],
+  );
+
+  useEffect(() => {
+    if (headerChkRef.current) {
+      headerChkRef.current.indeterminate = someVisibleSelected;
+    }
+  }, [someVisibleSelected]);
+
+  const toggle = (value: string) => {
+    setSelected((prev) =>
+      prev.includes(value) ? prev.filter((x) => x !== value) : [...prev, value],
+    );
+  };
+
+  const toggleAllVisible = () => {
+    if (allVisibleSelected) {
+      setSelected((prev) => prev.filter((id) => !visibleIds.includes(id)));
+    } else {
+      setSelected((prev) => Array.from(new Set([...prev, ...visibleIds])));
     }
   };
 
-  const doAdd = async () => {
-    if (!exam) return;
-    const toAddStd = selected.filter(k => !k.startsWith("ext-") && !rows.find(r => r.key === k)?.assigned);
-    const toAddExt = selected.filter(k => k.startsWith("ext-") && !rows.find(r => r.key === k)?.assigned).map(k => k.replace("ext-", ""));
-    if (toAddStd.length === 0 && toAddExt.length === 0) return;
-
-    await ExamService.addParticipants(exam.id, { studentIds: toAddStd, interestedIds: toAddExt });
-    await Swal.fire({ icon: "success", title: "Alumnos agregados" });
-    router.replace("/list/exam");
+  const handleSaveTitle = async () => {
+    try {
+      await ExamService.update(id, { title: title.trim() });
+      Swal.fire("Correcto", "Nombre actualizado", "success");
+      await loadExam();
+    } catch (error: any) {
+      Swal.fire("Error", error?.message || "No se pudo actualizar el nombre", "error");
+    }
   };
 
-  const doRemove = async () => {
-    if (!exam) return;
-    const toRemStd = selected.filter(k => !k.startsWith("ext-") && rows.find(r => r.key === k)?.assigned);
-    const toRemExt = selected.filter(k => k.startsWith("ext-") && rows.find(r => r.key === k)?.assigned).map(k => k.replace("ext-", ""));
-    if (toRemStd.length === 0 && toRemExt.length === 0) return;
-
-    await ExamService.removeParticipants(exam.id, { studentIds: toRemStd, interestedIds: toRemExt });
-    await Swal.fire({ icon: "success", title: "Modificado con éxito" });
-    router.replace("/list/exam");
-  };
-
-  const setPay = (detailId: string, patch: Partial<PayFields>) => {
-    setPayments(prev => ({
-      ...prev,
-      [detailId]: { ...prev[detailId], ...patch }
-    }));
-  };
-
-  const doRegisterPayments = async () => {
-    if (!exam) return;
-
-    // arma payload
-    const rows = Object.entries(payments).map(([detailId, p]) => ({
-      detailId,
-      amountPaid: (p.amountPaid ?? 0) < 0 ? 0 : p.amountPaid ?? 0,
-      typePaid: p.typePaid ?? null,
-      statusPaid: p.statusPaid ?? null,
-    }));
-
-    // simple validación de no negativos
-    const anyNegative = rows.some(r => (r.amountPaid ?? 0) < 0);
-    if (anyNegative) {
-      await Swal.fire({ icon: "error", title: "El monto no puede ser negativo" });
+  const handleAddParticipants = async () => {
+    if (selected.length === 0) {
+      Swal.fire("Atención", "Selecciona participantes para agregar", "warning");
       return;
     }
 
-    await ExamService.savePayments(exam.id, { rows });
-    await Swal.fire({ icon: "success", title: "Pagos registrados" });
+    try {
+      if (exam.type === TypeExam.SIMULACRO) {
+        await ExamService.addParticipants(id, { interestedIds: selected });
+      } else {
+        await ExamService.addParticipants(id, { studentIds: selected });
+      }
+
+      setSelected([]);
+      await loadExam();
+      Swal.fire("Correcto", "Participantes agregados", "success");
+    } catch (error: any) {
+      Swal.fire("Error", error?.message || "No se pudieron agregar participantes", "error");
+    }
   };
 
-  if (!exam) return null;
+  const handleRemoveAssigned = async (personKey: string) => {
+    const result = await Swal.fire({
+      title: "¿Quitar participante?",
+      text: "El participante será retirado del examen.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, quitar",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      if (personKey.startsWith("ext-")) {
+        await ExamService.removeParticipants(id, {
+          interestedIds: [personKey.replace("ext-", "")],
+        });
+      } else {
+        await ExamService.removeParticipants(id, {
+          studentIds: [personKey],
+        });
+      }
+
+      await loadExam();
+      Swal.fire("Correcto", "Participante retirado", "success");
+    } catch (error: any) {
+      Swal.fire("Error", error?.message || "No se pudo quitar el participante", "error");
+    }
+  };
+
+  const updatePaymentRow = (
+    detailId: string,
+    patch: Partial<PaymentRow>,
+  ) => {
+    setPayments((prev) =>
+      prev.map((row) => (row.detailId === detailId ? { ...row, ...patch } : row)),
+    );
+  };
+
+  const handleSavePayments = async () => {
+    try {
+      await ExamService.savePayments(id, payments);
+      await loadExam();
+      Swal.fire("Correcto", "Pagos actualizados", "success");
+    } catch (error: any) {
+      Swal.fire("Error", error?.message || "No se pudieron guardar los pagos", "error");
+    }
+  };
+
+  if (loading || !exam) {
+    return <div className="p-4">Cargando examen...</div>;
+  }
 
   return (
-    <section className="p-8">
-      <h2 className="text-2xl font-bold mb-1">Editar examen</h2>
-      <p className="text-sm text-gray-600 mb-4">
-        <b>Tipo:</b> {exam.type} &nbsp;|&nbsp; <b>Modalidad:</b> {exam.modality}
+    <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
+      <h1 className="text-3xl font-bold mb-2">Editar examen</h1>
+      <p className="text-sm text-gray-600 mb-6">
+        Tipo: {exam.type} &nbsp;|&nbsp; Modalidad: {exam.modality}
       </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="md:col-span-3">
-          <label className="block text-sm font-medium">Nombre del examen</label>
-          <div className="flex gap-2">
-            <input className="border rounded px-2 py-1 w-full" value={title} onChange={(e) => setTitle(e.target.value)} />
-            <Button className="bg-blue-600" onClick={saveTitle}>Guardar nombre</Button>
-          </div>
-        </div>
+      <div className="flex gap-3 mb-6">
+        <input
+          className="flex-1 h-11 rounded-md border px-3"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+        <Button className="bg-blue-600" onClick={handleSaveTitle}>
+          Guardar nombre
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <div>
-          <label className="block text-sm font-medium">Área</label>
-          <select className="border rounded px-2 py-1 w-full" value={areaId} onChange={e => setAreaId(e.target.value)}>
+          <label className="text-sm font-medium">Área</label>
+          <select
+            className="w-full h-10 rounded-md border px-3"
+            value={areaId}
+            onChange={(e) => setAreaId(e.target.value)}
+          >
             <option value="">Todas</option>
-            {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+            {areas.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
+            ))}
           </select>
         </div>
+
         <div>
-          <label className="block text-sm font-medium">Carrera</label>
-          <select className="border rounded px-2 py-1 w-full" value={careerId} onChange={e => setCareerId(e.target.value)}>
+          <label className="text-sm font-medium">Carrera</label>
+          <select
+            className="w-full h-10 rounded-md border px-3"
+            value={careerId}
+            onChange={(e) => setCareerId(e.target.value)}
+          >
             <option value="">Todas</option>
-            {careers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            {careers.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
+            ))}
           </select>
         </div>
       </div>
 
-      <table className="w-full border">
-        <thead>
-          <tr>
-            <th className="text-left p-2">
-              <input type="checkbox" ref={headerChkRef} checked={allVisibleSelected} onChange={toggleAllVisible} />
-            </th>
-            <th className="text-left p-2">Nombre</th>
-            <th className="text-left p-2">Carrera</th>
-            <th className="text-left p-2">Tipo</th>
-            <th className="text-left p-2">Estado</th>
-            {/* NUEVAS COLUMNAS */}
-            <th className="text-left p-2">(Monto)</th>
-            <th className="text-left p-2">(Método de Pago)</th>
-            <th className="text-left p-2">(Estatus)</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredRows.map(r => {
-            // ✅ Evita union con boolean: devuelve undefined si no está asignado
-            const assigned = r.assigned ? assignedMap[r.key] : undefined;
-            const detailId = assigned?.detailId;
-            const pay = detailId
-              ? (payments[detailId] ?? { amountPaid: 0, typePaid: null, statusPaid: null })
-              : null;
+      <div className="overflow-x-auto border rounded-lg mb-6">
+        <table className="min-w-full text-sm">
+          <thead>
+            <tr className="border-b bg-slate-50">
+              <th className="p-3 text-left">Nombre</th>
+              <th className="p-3 text-left">Carrera</th>
+              <th className="p-3 text-left">Tipo</th>
+              <th className="p-3 text-left">(Monto)</th>
+              <th className="p-3 text-left">(Método de Pago)</th>
+              <th className="p-3 text-left">(Estatus)</th>
+              <th className="p-3 text-left">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {roster.map((row) => {
+              const currentPayment =
+                payments.find((p) => p.detailId === row.detailId) || {
+                  detailId: row.detailId,
+                  amountPaid: null,
+                  typePaid: null,
+                  statusPaid: null,
+                };
 
-            return (
-              <tr key={r.key} className="border-t">
-                <td className="p-2">
-                  <input
-                    type="checkbox"
-                    checked={selected.includes(r.key)}
-                    onChange={() => toggle(r.key)}
-                  />
-                </td>
-
-                <td className="p-2">{r.firstName} {r.lastName}</td>
-                <td className="p-2">{r.careerName ?? "-"}</td>
-                <td className="p-2">{r.type}</td>
-                <td className="p-2">
-                  {r.assigned
-                    ? <span className="text-green-700 font-medium">Asignado</span>
-                    : <span className="text-gray-500">No asignado</span>}
-                </td>
-
-                {/* (Monto) */}
-                <td className="p-2">
-                  {detailId ? (
+              return (
+                <tr key={row.detailId} className="border-b">
+                  <td className="p-3">
+                    {row.firstName} {row.lastName}
+                  </td>
+                  <td className="p-3">{row.careerName}</td>
+                  <td className="p-3">{row.type}</td>
+                  <td className="p-3">
                     <input
                       type="number"
                       min={0}
                       step="0.01"
-                      className="border rounded px-2 py-1 w-28"
-                      value={pay?.amountPaid ?? 0}
+                      className="w-24 border rounded px-2 py-1"
+                      value={currentPayment.amountPaid ?? ""}
                       onChange={(e) =>
-                        setPay(detailId, {
-                          amountPaid: e.target.value === '' ? 0 : Number(e.target.value),
+                        updatePaymentRow(row.detailId, {
+                          amountPaid:
+                            e.target.value === "" ? null : Number(e.target.value),
                         })
                       }
                     />
-                  ) : <span className="text-gray-400">-</span>}
-                </td>
-
-                {/* (Método de Pago) */}
-                <td className="p-2">
-                  {detailId ? (
+                  </td>
+                  <td className="p-3">
                     <select
                       className="border rounded px-2 py-1"
-                      value={pay?.typePaid ?? ''}
+                      value={currentPayment.typePaid ?? ""}
                       onChange={(e) =>
-                        setPay(detailId, {
-                          typePaid: (e.target.value || null) as any,
+                        updatePaymentRow(row.detailId, {
+                          typePaid: e.target.value || null,
                         })
                       }
                     >
-                      <option value="">--</option>
+                      <option value="">-</option>
+                      <option value="EFECTIVO">EFECTIVO</option>
                       <option value="YAPE">YAPE</option>
                       <option value="PLIN">PLIN</option>
-                      <option value="RECIBO">RECIBO</option>
+                      <option value="TARJETA">TARJETA</option>
+                      <option value="TRANSFERENCIA_BANCARIA">TRANSFERENCIA</option>
                     </select>
-                  ) : <span className="text-gray-400">-</span>}
-                </td>
-
-                {/* (Estatus) */}
-                <td className="p-2">
-                  {detailId ? (
+                  </td>
+                  <td className="p-3">
                     <select
                       className="border rounded px-2 py-1"
-                      value={pay?.statusPaid ?? ''}
+                      value={currentPayment.statusPaid ?? ""}
                       onChange={(e) =>
-                        setPay(detailId, {
-                          statusPaid: (e.target.value || null) as any,
+                        updatePaymentRow(row.detailId, {
+                          statusPaid: e.target.value || null,
                         })
                       }
                     >
-                      <option value="">--</option>
+                      <option value="">-</option>
                       <option value="PAGO">PAGO</option>
                       <option value="DEBE">DEBE</option>
+                      <option value="EXONERADO">EXONERADO</option>
                     </select>
-                  ) : <span className="text-gray-400">-</span>}
+                  </td>
+                  <td className="p-3">
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleRemoveAssigned(row.personKey)}
+                    >
+                      Quitar
+                    </Button>
+                  </td>
+                </tr>
+              );
+            })}
+
+            {roster.length === 0 && (
+              <tr>
+                <td colSpan={7} className="p-4 text-sm text-gray-500">
+                  Sin resultados
                 </td>
               </tr>
-            );
-          })}
-          {filteredRows.length === 0 && (
-            <tr>
-              <td colSpan={8} className="p-4 text-sm text-gray-500">Sin resultados</td>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="overflow-x-auto border rounded-lg mb-6">
+        <table className="min-w-full text-sm">
+          <thead>
+            <tr className="border-b bg-slate-50">
+              <th className="p-3 text-left w-12">
+                <input
+                  ref={headerChkRef}
+                  type="checkbox"
+                  checked={allVisibleSelected}
+                  onChange={toggleAllVisible}
+                />
+              </th>
+              <th className="p-3 text-left">Nombre</th>
+              <th className="p-3 text-left">Carrera</th>
+              <th className="p-3 text-left">Tipo</th>
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {filteredCandidates.map((row) => (
+              <tr key={row.id} className="border-b">
+                <td className="p-3">
+                  <input
+                    type="checkbox"
+                    checked={selected.includes(row.id)}
+                    onChange={() => toggle(row.id)}
+                  />
+                </td>
+                <td className="p-3">
+                  {row.firstName} {row.lastName}
+                </td>
+                <td className="p-3">{row.careerName || "-"}</td>
+                <td className="p-3">{row.type}</td>
+              </tr>
+            ))}
+
+            {filteredCandidates.length === 0 && (
+              <tr>
+                <td colSpan={4} className="p-4 text-sm text-gray-500">
+                  No hay alumnos disponibles para agregar con este filtro
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
 
       <div className="flex gap-3 mt-6">
-        <Button className="bg-red-600" onClick={() => router.back()}>Regresar</Button>
-        <Button className="bg-yellow-600" onClick={doRemove}>Quitar alumnos</Button>
-        <Button className="bg-blue-600" onClick={doAdd}>Agregar alumnos y Guardar</Button>
-        {/* NUEVO BOTÓN PROPIO */}
-        <Button className="bg-green-700" onClick={doRegisterPayments}>Registrar pago</Button>
+        <Button variant="destructive" onClick={() => router.replace("/list/exam")}>
+          Regresar
+        </Button>
+        <Button variant="secondary" onClick={handleAddParticipants}>
+          Agregar alumnos y guardar
+        </Button>
+        <Button className="bg-green-600" onClick={handleSavePayments}>
+          Registrar pago
+        </Button>
       </div>
-    </section>
+    </div>
   );
 }

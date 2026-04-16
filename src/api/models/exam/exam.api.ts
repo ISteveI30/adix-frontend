@@ -1,92 +1,94 @@
-import { Exam, RosterRow } from "@/api/interfaces/exam.interface";
-import { fetchWrapper } from "@/api/services/api";
-import { ExamSummary } from '@/api/interfaces/exam.interface';
-
-export type ScoreRowPayload = {
-  detailId: string;
-  goodAnswers?: number | null;
-  wrongAnswers?: number | null;
-  totalScore?: number | null;
-};
-
-// Tipos inline para pagos (evita imports adicionales)
-type PaymentMethod = 'YAPE' | 'PLIN' | 'RECIBO';
-type PaymentStatus = 'PAGO' | 'DEBE';
+import fetchWrapper from "@/api/services/api";
+import {
+  CreateExamDto,
+  CreateExamWithDetailsDto,
+  Exam,
+  ExamRosterRow,
+  ExamSummary,
+  SavePaymentRow,
+  SaveScoreRow,
+  SyncParticipantsDto,
+} from "@/api/interfaces/exam.interface";
 
 export class ExamService {
-
-  static async create(data: Partial<Exam>): Promise<Exam> {
-    return await fetchWrapper<Exam>("/exam", {
-      method: "POST",
-      body: data,
-    });
+  static async summary(): Promise<ExamSummary[]> {
+    return await fetchWrapper<ExamSummary[]>("/exam/summary");
   }
 
-  static async getAll(): Promise<Exam[]> {
-    return await fetchWrapper<Exam[]>("/exam", { method: "GET" });
+  static async list(): Promise<Exam[]> {
+    return await fetchWrapper<Exam[]>("/exam");
   }
 
   static async getById(id: string): Promise<Exam> {
-    return await fetchWrapper<Exam>(`/exam/${id}`, { method: "GET" });
+    return await fetchWrapper<Exam>(`/exam/${id}`);
   }
 
-  static async getRoster(examId: string): Promise<RosterRow[]>  {
-    return await fetchWrapper(`/exam/${examId}/roster`);
-  }
-
-  static async updateTitle(examId: string, title: string) {
-    return await fetchWrapper(`/exam/${examId}`, {
-      method: "PATCH",
-      body: { title },
+  static async create(dto: CreateExamDto) {
+    return await fetchWrapper<Exam>("/exam", {
+      method: "POST",
+      body: dto,
     });
   }
 
-  static async syncParticipants(examId: string, payload: { studentIds: string[]; interestedIds: string[] }) {
-    return await fetchWrapper(`/exam/${examId}/participants`, {
-      method: "PUT",
-      body: payload,
-    });
+  static async createWithDetails(dto: CreateExamWithDetailsDto) {
+    return await fetchWrapper<{ exam: Exam; createdStudents: number; createdInterested: number }>(
+      "/exam/create-with-details",
+      {
+        method: "POST",
+        body: dto,
+      },
+    );
   }
 
-  static async addParticipants(examId: string, payload: { studentIds: string[]; interestedIds: string[] }) {
-    return await fetchWrapper(`/exam/${examId}/participants/add`, { method: "POST", body: payload });
-  }
-
-  static async removeParticipants(examId: string, payload: { studentIds: string[]; interestedIds: string[] }) {
-    return await fetchWrapper(`/exam/${examId}/participants/remove`, { method: "POST", body: payload });
-  }
-
-  static async updateScores(examId: string, rows: ScoreRowPayload[]): Promise<void> {
-    await fetchWrapper<void>(`/exam/${examId}/scores`, { method: "PATCH", body: { rows } });
-  }
-
-  
-  static async savePayments(
-    examId: string,
-    dto: { rows: Array<{ detailId: string; amountPaid?: number | null; typePaid?: PaymentMethod | null; statusPaid?: PaymentStatus | null; }> }
-  ): Promise<{ updated: number }> {
-    return await fetchWrapper<{ updated: number }>(`/exam/${examId}/payments`, {
+  static async update(id: string, dto: { title?: string }) {
+    return await fetchWrapper<Exam>(`/exam/${id}`, {
       method: "PATCH",
       body: dto,
     });
   }
 
-  static async update(id: string, data: Partial<Exam>): Promise<Exam> {
-    return await fetchWrapper<Exam>(`/exam/${id}`, { method: "PATCH", body: data });
+  static async delete(id: string) {
+    return await fetchWrapper<{ deleted: boolean }>(`/exam/${id}`, {
+      method: "DELETE",
+    });
   }
 
-  static async delete(id: string): Promise<void> {
-    await fetchWrapper<void>(`/exam/${id}`, { method: "DELETE" });
+  static async roster(id: string): Promise<ExamRosterRow[]> {
+    return await fetchWrapper<ExamRosterRow[]>(`/exam/${id}/roster`);
   }
 
-  static async createWithDetails(payload: {
-    title: string; modality: string; type: string; cycleId: string;
-    studentIds?: string[]; interestedIds?: string[];
-  }) {
-    return await fetchWrapper(`/exam/create-with-details`, { method: "POST", body: payload });
+  static async syncParticipants(id: string, dto: SyncParticipantsDto) {
+    return await fetchWrapper<{ added: number; removed: number }>(`/exam/${id}/participants`, {
+      method: "PUT",
+      body: dto,
+    });
   }
 
-  static async getSummary(): Promise<ExamSummary[]> {
-    return await fetchWrapper('/exam/summary', { method: 'GET' });
+  static async addParticipants(id: string, dto: SyncParticipantsDto) {
+    return await fetchWrapper<{ added: number }>(`/exam/${id}/participants/add`, {
+      method: "POST",
+      body: dto,
+    });
+  }
+
+  static async removeParticipants(id: string, dto: SyncParticipantsDto) {
+    return await fetchWrapper<{ removed: number }>(`/exam/${id}/participants/remove`, {
+      method: "POST",
+      body: dto,
+    });
+  }
+
+  static async saveScores(id: string, rows: SaveScoreRow[]) {
+    return await fetchWrapper<{ updated: number }>(`/exam/${id}/scores`, {
+      method: "PATCH",
+      body: { rows },
+    });
+  }
+
+  static async savePayments(id: string, rows: SavePaymentRow[]) {
+    return await fetchWrapper<{ updated: number }>(`/exam/${id}/payments`, {
+      method: "PATCH",
+      body: { rows },
+    });
   }
 }
