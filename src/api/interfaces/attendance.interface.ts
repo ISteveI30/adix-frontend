@@ -2,6 +2,7 @@ export type AttendanceRow = {
   id: string;
   studentId: string;
   fullName: string;
+  dni?: string | null;
   barcodeValue?: string | null;
   admissionName?: string | null;
   cycleName: string;
@@ -25,6 +26,7 @@ export type ScanAttendanceResponse = {
     id: string;
     fullName: string;
     barcodeValue?: string;
+    admissionName?: string;
     cycleName: string;
     careerName: string;
     shift?: string;

@@ -3,13 +3,33 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import Swal from "sweetalert2";
+import Link from "next/link";
 import { AttendanceService } from "@/api/models/attendance/attendance.api";
 import { MasterService } from "@/api/models/masters/masters";
 import { getAreas, getCareersByArea } from "@/api/models/areas/areas.api";
 import { AttendanceRow } from "@/api/interfaces/attendance.interface";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import Link from "next/link";
+
+function sortAdmissionsDesc(items: Array<{ id: string; name: string }>) {
+  return [...items].sort((a, b) =>
+    b.name.localeCompare(a.name, "es", { numeric: true }),
+  );
+}
+
+function buildScannedAtFromSelectedDate(dateValue: string) {
+  const now = new Date();
+  const selectedDate = new Date(`${dateValue}T00:00:00`);
+
+  selectedDate.setHours(
+    now.getHours(),
+    now.getMinutes(),
+    now.getSeconds(),
+    now.getMilliseconds(),
+  );
+
+  return selectedDate.toISOString();
+}
 
 export default function AttendancePage() {
   const [barcodeValue, setBarcodeValue] = useState("");
@@ -18,6 +38,8 @@ export default function AttendancePage() {
   const [cycles, setCycles] = useState<Array<{ id: string; name: string }>>([]);
   const [areas, setAreas] = useState<Array<{ id: string; name: string }>>([]);
   const [careers, setCareers] = useState<Array<{ id: string; name: string }>>([]);
+  const [studentSearch, setStudentSearch] = useState("");
+
   const [lastScan, setLastScan] = useState<{
     fullName: string;
     status: string;
@@ -42,8 +64,11 @@ export default function AttendancePage() {
         date: filters.date,
         admissionId: filters.admissionId || undefined,
         cycleId: filters.cycleId || undefined,
+        areaId: filters.areaId || undefined,
         careerId: filters.careerId || undefined,
+        studentQuery: studentSearch.trim() || undefined,
       });
+
       setRows(data);
     } catch (error: any) {
       toast.error(error?.message || "No se pudo cargar la lista de asistencias");
@@ -58,7 +83,8 @@ export default function AttendancePage() {
           MasterService.getCycles(),
           getAreas(),
         ]);
-        setAdmissions(admissionsData);
+
+        setAdmissions(sortAdmissionsDesc(admissionsData));
         setCycles(cyclesData);
         setAreas(areasData);
       } catch {
@@ -90,7 +116,21 @@ export default function AttendancePage() {
 
   useEffect(() => {
     loadRows();
-  }, [filters.date, filters.admissionId, filters.cycleId, filters.careerId]);
+  }, [
+    filters.date,
+    filters.admissionId,
+    filters.cycleId,
+    filters.areaId,
+    filters.careerId,
+  ]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadRows();
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [studentSearch]);
 
   useEffect(() => {
     scannerRef.current?.focus();
@@ -100,7 +140,8 @@ export default function AttendancePage() {
     if (!barcodeValue.trim()) return;
 
     try {
-      const response = await AttendanceService.scan(barcodeValue.trim());
+      const scannedAt = buildScannedAtFromSelectedDate(filters.date);
+      const response = await AttendanceService.scan(barcodeValue.trim(), scannedAt);
 
       setLastScan({
         fullName: response.student.fullName,
@@ -112,12 +153,19 @@ export default function AttendancePage() {
 
       toast.success(`${response.student.fullName}: ${response.attendance.status}`);
       setBarcodeValue("");
+
       await loadRows();
-      scannerRef.current?.focus();
+
+      setTimeout(() => {
+        scannerRef.current?.focus();
+      }, 50);
     } catch (error: any) {
       toast.error(error?.message || "No se pudo registrar la asistencia");
       setBarcodeValue("");
-      scannerRef.current?.focus();
+
+      setTimeout(() => {
+        scannerRef.current?.focus();
+      }, 50);
     }
   };
 
@@ -160,6 +208,7 @@ export default function AttendancePage() {
       inputPlaceholder: "Ingrese el motivo",
       showCancelButton: true,
       confirmButtonText: "Justificar",
+      cancelButtonText: "Cancelar",
     });
 
     if (!result.isConfirmed) return;
@@ -182,11 +231,14 @@ export default function AttendancePage() {
   return (
     <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="hidden md:block text-lg font-semibold">Registro de Asistencias</h1>
+        <h1 className="hidden md:block text-lg font-semibold">
+          Registro de Asistencias
+        </h1>
+
         <Link href="/list/students/barcodes">
           <Button className="bg-slate-700">Ver e imprimir carnets</Button>
         </Link>
-      </div> 
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
         <div className="lg:col-span-2">
@@ -227,7 +279,9 @@ export default function AttendancePage() {
         <div className="mb-6 rounded-xl border p-4 bg-slate-50">
           <div className="text-sm text-gray-500 mb-1">Último escaneo</div>
           <div className="text-lg font-bold">{lastScan.fullName}</div>
-          <div className="text-sm">{lastScan.cycleName} - {lastScan.careerName}</div>
+          <div className="text-sm">
+            {lastScan.cycleName} - {lastScan.careerName}
+          </div>
           <div className="text-sm">Turno: {lastScan.shift || "-"}</div>
           <div className="mt-2 inline-flex rounded-full bg-green-100 text-green-700 px-3 py-1 text-sm font-medium">
             {lastScan.status}
@@ -245,7 +299,7 @@ export default function AttendancePage() {
               setFilters((prev) => ({ ...prev, admissionId: e.target.value }))
             }
           >
-            <option value="">Todas</option>
+            <option value="">Última admisión vigente</option>
             {admissions.map((item) => (
               <option key={item.id} value={item.id}>
                 {item.name}
@@ -309,19 +363,31 @@ export default function AttendancePage() {
         </div>
       </div>
 
+      <div className="mb-6">
+        <label className="text-sm font-medium">Buscar alumno / DNI</label>
+        <Input
+          value={studentSearch}
+          onChange={(e) => setStudentSearch(e.target.value)}
+          placeholder="Buscar por nombre, apellido o DNI"
+        />
+      </div>
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div className="rounded-lg border p-4">
           <div className="text-sm text-gray-500">Total</div>
           <div className="text-2xl font-bold">{summary.total}</div>
         </div>
+
         <div className="rounded-lg border p-4">
           <div className="text-sm text-gray-500">Asistieron</div>
           <div className="text-2xl font-bold text-green-600">{summary.asistio}</div>
         </div>
+
         <div className="rounded-lg border p-4">
           <div className="text-sm text-gray-500">Tardanzas</div>
           <div className="text-2xl font-bold text-yellow-600">{summary.tardanza}</div>
         </div>
+
         <div className="rounded-lg border p-4">
           <div className="text-sm text-gray-500">Faltas</div>
           <div className="text-2xl font-bold text-red-600">{summary.falta}</div>
@@ -333,6 +399,7 @@ export default function AttendancePage() {
           <thead>
             <tr className="border-b bg-slate-50">
               <th className="p-3 text-left">Alumno</th>
+              <th className="p-3 text-left">DNI</th>
               <th className="p-3 text-left">Admisión</th>
               <th className="p-3 text-left">Ciclo</th>
               <th className="p-3 text-left">Carrera</th>
@@ -343,10 +410,12 @@ export default function AttendancePage() {
               <th className="p-3 text-left">Editar</th>
             </tr>
           </thead>
+
           <tbody>
             {rows.map((row) => (
               <tr key={row.id} className="border-b">
                 <td className="p-3">{row.fullName}</td>
+                <td className="p-3">{row.dni || "-"}</td>
                 <td className="p-3">{row.admissionName || "-"}</td>
                 <td className="p-3">{row.cycleName}</td>
                 <td className="p-3">{row.careerName}</td>
@@ -371,7 +440,7 @@ export default function AttendancePage() {
                       <option value="FALTA_JUSTIFICADA">FALTA JUSTIFICADA</option>
                     </select>
 
-                    {row.canJustify && (
+                    {(row.status === "TARDANZA" || row.status === "FALTA") && (
                       <Button
                         type="button"
                         variant="outline"
@@ -387,7 +456,7 @@ export default function AttendancePage() {
 
             {rows.length === 0 && (
               <tr>
-                <td colSpan={9} className="p-4 text-center text-gray-500">
+                <td colSpan={10} className="p-4 text-center text-gray-500">
                   No hay alumnos para este filtro
                 </td>
               </tr>

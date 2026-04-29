@@ -1,14 +1,19 @@
 "use client";
+
 import { useEffect, useMemo, useState } from "react";
+import Swal from "sweetalert2";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import Swal from "sweetalert2";
 
 import { CareerApi } from "@/api/models/career/career.api";
 import { CycleService } from "@/api/models/cycle/cycle.api";
 import { AdmissionApi } from "@/api/models/admission/admission.api";
 import { getAreas, getCareersByArea } from "@/api/models/areas/areas.api";
+import {
+  AttendanceScheduleService,
+  AttendanceScheduleSetting,
+} from "@/api/models/attendance-schedule/attendance-schedule.api";
 
 import {
   Select,
@@ -32,8 +37,10 @@ type ColumnDef = {
   }) => React.ReactNode;
 };
 
-/* ------------------------ Utilidades ------------------------ */
-const onlyAllowed = <T extends object, K extends keyof T>(o: T, keys: K[]): Pick<T, K> =>
+const onlyAllowed = <T extends object, K extends keyof T>(
+  o: T,
+  keys: K[],
+): Pick<T, K> =>
   keys.reduce((acc, k) => {
     if (o[k] !== undefined) (acc as any)[k] = o[k];
     return acc;
@@ -42,7 +49,29 @@ const onlyAllowed = <T extends object, K extends keyof T>(o: T, keys: K[]): Pick
 const toISODateOrNull = (v: any) => (v ? new Date(v).toISOString() : null);
 const toDateInput = (iso?: string) => (iso ? iso.slice(0, 10) : "");
 
-/* -------------------- “CRUD genérico” base ------------------- */
+function getErrorMessage(error: unknown, fallback: string) {
+  if (typeof error === "string") return error;
+
+  if (error && typeof error === "object") {
+    const maybeError = error as {
+      message?: unknown;
+      errorData?: { message?: unknown };
+    };
+
+    if (typeof maybeError.message === "string") return maybeError.message;
+
+    if (
+      maybeError.errorData &&
+      typeof maybeError.errorData === "object" &&
+      typeof maybeError.errorData.message === "string"
+    ) {
+      return maybeError.errorData.message;
+    }
+  }
+
+  return fallback;
+}
+
 function CrudSection({
   title,
   rows,
@@ -75,6 +104,7 @@ function CrudSection({
   const save = async () => {
     try {
       const items = Object.values(editing);
+
       if (!items.length) {
         await Swal.fire({ icon: "info", title: "No hay cambios" });
         return;
@@ -84,7 +114,6 @@ function CrudSection({
         if (row.id) {
           await api.update(row.id, buildPayload(row, "update"));
         } else {
-          // Ignorar nuevas sin nombre para que no explote la validación
           if (!row.name || String(row.name).trim() === "") continue;
           await api.create(buildPayload(row, "create"));
         }
@@ -107,12 +136,12 @@ function CrudSection({
     setRows(await api.list());
   };
 
-  // 🔒 RIDs estables: pares [rid, row] para evitar filas fantasma
   const displayPairs = useMemo<[string, Row][]>(() => {
     const existing: [string, Row][] = rows.map((r) => [r.id!, r]);
     const news: [string, Row][] = Object.entries(editing).filter(
-      ([, r]) => !r.id // solo nuevas
+      ([, r]) => !r.id,
     );
+
     return [...existing, ...news];
   }, [rows, editing]);
 
@@ -121,6 +150,7 @@ function CrudSection({
       <CardHeader>
         <CardTitle>{title}</CardTitle>
       </CardHeader>
+
       <CardContent>
         <div className="mb-3">
           <Button
@@ -128,7 +158,10 @@ function CrudSection({
             onClick={() =>
               setEditing((prev) => ({
                 ...prev,
-                [`__new_${Date.now()}`]: { name: "", ...(onAddNew?.() ?? {}) },
+                [`__new_${Date.now()}`]: {
+                  name: "",
+                  ...(onAddNew?.() ?? {}),
+                },
               }))
             }
           >
@@ -148,6 +181,7 @@ function CrudSection({
                 <th className="py-2 px-3">Acciones</th>
               </tr>
             </thead>
+
             <tbody>
               {displayPairs.map(([rid, base]) => {
                 const isEd = !!editing[rid] || !base.id;
@@ -169,7 +203,6 @@ function CrudSection({
                       return (
                         <td key={col.key} className="py-2 px-3">
                           {col.render ? (
-                            // ✅ usar render tanto en lectura como en edición
                             col.render({
                               isEditing: isEd,
                               value: isEd
@@ -186,8 +219,8 @@ function CrudSection({
                                 col.type === "number"
                                   ? "number"
                                   : col.type === "date"
-                                  ? "date"
-                                  : "text"
+                                    ? "date"
+                                    : "text"
                               }
                               value={
                                 col.type === "date"
@@ -224,6 +257,7 @@ function CrudSection({
                           >
                             Editar
                           </Button>
+
                           {base.id && (
                             <Button
                               size="sm"
@@ -265,12 +299,11 @@ function CrudSection({
   );
 }
 
-/* --------------- Sección ESPECIAL para Carreras ---------------- */
 function CareersSection() {
   const [areas, setAreas] = useState<any[]>([]);
   const [selectedArea, setSelectedArea] = useState<string>("");
   const [careers, setCareers] = useState<Row[]>([]);
-  const [areaMap, setAreaMap] = useState<Record<string, string>>({}); // id -> name
+  const [areaMap, setAreaMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     (async () => {
@@ -280,8 +313,9 @@ function CareersSection() {
         (_areas || []).reduce((acc: any, a: any) => {
           acc[a.id] = a.name;
           return acc;
-        }, {})
+        }, {}),
       );
+
       if (_areas?.length) setSelectedArea(_areas[0].id);
     })();
   }, []);
@@ -314,14 +348,20 @@ function CareersSection() {
             </SelectContent>
           </Select>
         ) : (
-          // ✅ mostrar nombre, no UUID
           <span>{areaMap[(value as string) ?? ""] ?? "—"}</span>
         ),
     },
   ];
 
   const buildPayload = (row: Row) => {
-    const base = onlyAllowed(row, ["name", "scoreMin", "scoreMax", "vacants", "areaId"]);
+    const base = onlyAllowed(row, [
+      "name",
+      "scoreMin",
+      "scoreMax",
+      "vacants",
+      "areaId",
+    ]);
+
     if (!base.areaId) (base as any).areaId = selectedArea;
 
     if (!base.name || String(base.name).trim() === "") {
@@ -342,10 +382,12 @@ function CareersSection() {
     <div className="space-y-3">
       <div className="flex items-center gap-3">
         <span className="text-sm">Filtrar por área:</span>
+
         <Select value={selectedArea} onValueChange={setSelectedArea}>
           <SelectTrigger className="w-[260px]">
             <SelectValue placeholder="Seleccione un área" />
           </SelectTrigger>
+
           <SelectContent>
             {areas.map((a) => (
               <SelectItem key={a.id} value={a.id}>
@@ -374,35 +416,224 @@ function CareersSection() {
   );
 }
 
-/* ----------------------- Página principal ---------------------- */
+function AttendanceScheduleSection() {
+  const [rows, setRows] = useState<AttendanceScheduleSetting[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [savingShift, setSavingShift] = useState<string | null>(null);
+
+  const loadRows = async () => {
+    try {
+      setLoading(true);
+      const data = await AttendanceScheduleService.list();
+
+      setRows(
+        data
+          .filter((item) => item.shift === "MANANA" || item.shift === "TARDE")
+          .sort((a, b) => {
+            const order = { MANANA: 1, TARDE: 2, NOCHE: 3 };
+            return order[a.shift] - order[b.shift];
+          }),
+      );
+    } catch (error) {
+      await Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: getErrorMessage(error, "No se pudieron cargar los horarios"),
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadRows();
+  }, []);
+
+  const updateRow = (
+    shift: AttendanceScheduleSetting["shift"],
+    field: "start" | "punctualLimit" | "absenceCutoff" | "end",
+    value: string,
+  ) => {
+    setRows((prev) =>
+      prev.map((row) =>
+        row.shift === shift
+          ? {
+              ...row,
+              [field]: value,
+            }
+          : row,
+      ),
+    );
+  };
+
+  const saveRow = async (row: AttendanceScheduleSetting) => {
+    try {
+      setSavingShift(row.shift);
+
+      await AttendanceScheduleService.update(row.shift, {
+        start: row.start,
+        punctualLimit: row.punctualLimit,
+        absenceCutoff: row.absenceCutoff,
+        end: row.end,
+      });
+
+      await Swal.fire({
+        icon: "success",
+        title: "Horario actualizado",
+        text: `El horario del turno ${row.shift} se actualizó correctamente.`,
+      });
+
+      await loadRows();
+    } catch (error) {
+      await Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: getErrorMessage(error, "No se pudo actualizar el horario"),
+      });
+    } finally {
+      setSavingShift(null);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Horarios de Asistencia</CardTitle>
+      </CardHeader>
+
+      <CardContent>
+        {loading ? (
+          <div className="text-sm text-gray-500">Cargando horarios...</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="text-left border-b">
+                  <th className="py-2 px-3">Turno</th>
+                  <th className="py-2 px-3">Inicio asistencia</th>
+                  <th className="py-2 px-3">Límite puntual</th>
+                  <th className="py-2 px-3">Hora de falta</th>
+                  <th className="py-2 px-3">Fin turno</th>
+                  <th className="py-2 px-3">Acción</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {rows.map((row) => (
+                  <tr key={row.shift} className="border-b">
+                    <td className="py-2 px-3 font-medium">
+                      {row.shift === "MANANA" ? "Mañana" : "Tarde"}
+                    </td>
+
+                    <td className="py-2 px-3">
+                      <Input
+                        type="time"
+                        value={row.start}
+                        onChange={(e) =>
+                          updateRow(row.shift, "start", e.target.value)
+                        }
+                      />
+                    </td>
+
+                    <td className="py-2 px-3">
+                      <Input
+                        type="time"
+                        value={row.punctualLimit}
+                        onChange={(e) =>
+                          updateRow(row.shift, "punctualLimit", e.target.value)
+                        }
+                      />
+                    </td>
+
+                    <td className="py-2 px-3">
+                      <Input
+                        type="time"
+                        value={row.absenceCutoff}
+                        onChange={(e) =>
+                          updateRow(row.shift, "absenceCutoff", e.target.value)
+                        }
+                      />
+                    </td>
+
+                    <td className="py-2 px-3">
+                      <Input
+                        type="time"
+                        value={row.end}
+                        onChange={(e) =>
+                          updateRow(row.shift, "end", e.target.value)
+                        }
+                      />
+                    </td>
+
+                    <td className="py-2 px-3">
+                      <Button
+                        onClick={() => saveRow(row)}
+                        disabled={savingShift === row.shift}
+                      >
+                        {savingShift === row.shift ? "Guardando..." : "Guardar"}
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+
+                {!rows.length && (
+                  <tr>
+                    <td colSpan={6} className="py-6 px-3 text-gray-500">
+                      Sin horarios configurados
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        <div className="mt-4 rounded-md bg-slate-50 border p-4 text-sm text-gray-600">
+          <p>
+            Estos horarios se usan automáticamente en el módulo de asistencias
+            para calcular si el alumno asistió puntualmente, llegó tarde o quedó
+            como falta.
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function MetadataPage() {
   const [cycles, setCycles] = useState<Row[]>([]);
   const [admissions, setAdmissions] = useState<Row[]>([]);
 
   useEffect(() => {
     CycleService.list().then(setCycles);
+
     AdmissionApi.list()
       .then((rows) =>
         rows.map((r: any) => ({
           ...r,
           startAt: toDateInput(r.startAt),
           endAt: toDateInput(r.endAt),
-        }))
+        })),
       )
       .then(setAdmissions);
   }, []);
 
   const buildCyclePayload = (row: Row) => {
     const base = onlyAllowed(row, ["name"]);
-    if (!base.name || String(base.name).trim() === "")
+
+    if (!base.name || String(base.name).trim() === "") {
       throw new Error("El nombre es obligatorio.");
+    }
+
     return base;
   };
 
   const buildAdmissionPayload = (row: Row) => {
     const base = onlyAllowed(row, ["name", "startAt", "endAt"]);
-    if (!base.name || String(base.name).trim() === "")
+
+    if (!base.name || String(base.name).trim() === "") {
       throw new Error("El nombre es obligatorio.");
+    }
 
     (base as any).startAt = toISODateOrNull(row.startAt);
     (base as any).endAt = toISODateOrNull(row.endAt);
@@ -413,13 +644,13 @@ export default function MetadataPage() {
   return (
     <div className="bg-white p-4 rounded-md m-4 border space-y-8">
       <div className="flex items-center justify-between border-b pb-2 mb-2">
-        <h1 className="text-lg font-semibold">Metadata (Carrera, Ciclo, Admisión)</h1>
+        <h1 className="text-lg font-semibold">
+          Metadata (Carrera, Ciclo, Admisión)
+        </h1>
       </div>
 
-      {/* Carreras con filtro por Área */}
       <CareersSection />
 
-      {/* Ciclos */}
       <CrudSection
         title="Ciclos"
         rows={cycles}
@@ -429,7 +660,6 @@ export default function MetadataPage() {
         buildPayload={buildCyclePayload}
       />
 
-      {/* Admisiones */}
       <CrudSection
         title="Admisiones"
         rows={admissions}
@@ -442,6 +672,8 @@ export default function MetadataPage() {
         api={AdmissionApi}
         buildPayload={buildAdmissionPayload}
       />
+
+      <AttendanceScheduleSection />
     </div>
   );
 }
