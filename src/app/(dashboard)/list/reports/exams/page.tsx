@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,12 @@ import {
   ExamReportResponse,
 } from "@/api/interfaces/report.interface";
 import { toast } from "sonner";
+
+function sortAdmissionsDesc(items: Array<{ id: string; name: string }>) {
+  return [...items].sort((a, b) =>
+    b.name.localeCompare(a.name, "es", { numeric: true }),
+  );
+}
 
 function getSafeErrorMessage(error: unknown, fallback: string) {
   if (typeof error === "string") return error;
@@ -38,6 +44,7 @@ function getSafeErrorMessage(error: unknown, fallback: string) {
 
 export default function ExamReportsPage() {
   const [loading, setLoading] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [report, setReport] = useState<ExamReportResponse | null>(null);
 
   const [admissions, setAdmissions] = useState<Array<{ id: string; name: string }>>([]);
@@ -53,10 +60,7 @@ export default function ExamReportsPage() {
     areaId: "",
     careerId: "",
     type: "",
-    modality: "",
-    examId: "",
-    studentQuery: "",
-    statusPaid: "",
+    examName: "",
     dateFrom: "",
     dateTo: "",
   });
@@ -71,18 +75,9 @@ export default function ExamReportsPage() {
         getSafeErrorMessage(error, "No se pudo cargar el reporte de exámenes"),
       );
       setReport({
-        summary: {
-          totalRows: 0,
-          totalAmountPaid: 0,
-          averageScore: 0,
-          totalExams: 0,
-        },
+        summary: { totalRows: 0 },
         data: [],
-        meta: {
-          total: 0,
-          page: 1,
-          lastPage: 1,
-        },
+        meta: { total: 0, page: 1, lastPage: 1 },
       });
     } finally {
       setLoading(false);
@@ -97,7 +92,8 @@ export default function ExamReportsPage() {
           MasterService.getCycles(),
           getAreas(),
         ]);
-        setAdmissions(admissionsData);
+
+        setAdmissions(sortAdmissionsDesc(admissionsData));
         setCycles(cyclesData);
         setAreas(areasData);
       } catch {
@@ -117,7 +113,7 @@ export default function ExamReportsPage() {
       }
 
       try {
-        const data = await getCareersByArea(filters.areaId!);
+        const data = await getCareersByArea(filters.areaId);
         setCareers(data);
       } catch {
         toast.error("No se pudieron cargar las carreras");
@@ -131,19 +127,15 @@ export default function ExamReportsPage() {
     loadReport(filters);
   }, [filters.page, filters.limit]);
 
-  const exportUrl = useMemo(
-    () => ReportService.getExamExportUrl({ ...filters, page: 1, limit: 100000 }),
-    [filters],
-  );
-
   const applyFilters = async () => {
     const nextFilters = { ...filters, page: 1 };
     setFilters(nextFilters);
+    setExpandedId(null);
     await loadReport(nextFilters);
   };
 
-  const clearFilters = () => {
-    setFilters({
+  const clearFilters = async () => {
+    const cleanFilters: ExamReportFilters = {
       page: 1,
       limit: 20,
       admissionId: "",
@@ -151,28 +143,31 @@ export default function ExamReportsPage() {
       areaId: "",
       careerId: "",
       type: "",
-      modality: "",
-      examId: "",
-      studentQuery: "",
-      statusPaid: "",
+      examName: "",
       dateFrom: "",
       dateTo: "",
-    });
+    };
+
+    setFilters(cleanFilters);
+    setExpandedId(null);
+    await loadReport(cleanFilters);
+  };
+
+  const toggleExpanded = (id: string) => {
+    setExpandedId((prev) => (prev === id ? null : id));
   };
 
   return (
     <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Reporte de Exámenes</h1>
-        <div className="flex gap-2">
-          <Link href="/list/reports">
-            <Button variant="outline">Retroceder</Button>
-          </Link>
 
-        </div>
+        <Link href="/list/reports">
+          <Button variant="outline">Retroceder</Button>
+        </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div>
           <label className="text-sm font-medium">Admisión</label>
           <select
@@ -246,44 +241,24 @@ export default function ExamReportsPage() {
         </div>
 
         <div>
-          <label className="text-sm font-medium">Tipo examen</label>
+          <label className="text-sm font-medium">Tipo de examen</label>
           <Input
             value={filters.type}
-            onChange={(e) => setFilters((p) => ({ ...p, type: e.target.value }))}
+            onChange={(e) =>
+              setFilters((p) => ({ ...p, type: e.target.value }))
+            }
             placeholder="Ej. SIMULACRO"
           />
         </div>
 
         <div>
-          <label className="text-sm font-medium">Modalidad</label>
+          <label className="text-sm font-medium">Nombre de examen</label>
           <Input
-            value={filters.modality}
+            value={filters.examName}
             onChange={(e) =>
-              setFilters((p) => ({ ...p, modality: e.target.value }))
+              setFilters((p) => ({ ...p, examName: e.target.value }))
             }
-            placeholder="Ej. PRESENCIAL"
-          />
-        </div>
-
-        <div>
-          <label className="text-sm font-medium">Alumno</label>
-          <Input
-            value={filters.studentQuery}
-            onChange={(e) =>
-              setFilters((p) => ({ ...p, studentQuery: e.target.value }))
-            }
-            placeholder="Buscar alumno"
-          />
-        </div>
-
-        <div>
-          <label className="text-sm font-medium">Estado pago</label>
-          <Input
-            value={filters.statusPaid}
-            onChange={(e) =>
-              setFilters((p) => ({ ...p, statusPaid: e.target.value }))
-            }
-            placeholder="Ej. PAGO"
+            placeholder="Buscar examen"
           />
         </div>
 
@@ -319,57 +294,110 @@ export default function ExamReportsPage() {
         </Button>
       </div>
 
-
       <div className="overflow-x-auto border rounded-lg">
         <table className="min-w-full text-sm">
           <thead>
             <tr className="border-b bg-slate-50">
-              <th className="p-3 text-left">Examen</th>
-              <th className="p-3 text-left">Tipo</th>
+              <th className="p-3 text-left">Nombre de examen</th>
               <th className="p-3 text-left">Modalidad</th>
-              <th className="p-3 text-left">Alumno</th>
               <th className="p-3 text-left">Admisión</th>
               <th className="p-3 text-left">Ciclo</th>
-              <th className="p-3 text-left">Carrera</th>
-              <th className="p-3 text-left">Buenas</th>
-              <th className="p-3 text-left">Malas</th>
-              <th className="p-3 text-left">Puntaje</th>
-              <th className="p-3 text-left">Pagado</th>
-              <th className="p-3 text-left">Método</th>
-              <th className="p-3 text-left">Estado pago</th>
+              <th className="p-3 text-left">Cantidad de alumnos</th>
+              <th className="p-3 text-left">Detalle</th>
             </tr>
           </thead>
+
           <tbody>
             {report?.data.map((row) => (
-              <tr key={row.id} className="border-b">
-                <td className="p-3">{row.examTitle}</td>
-                <td className="p-3">{row.examType}</td>
-                <td className="p-3">{row.modality}</td>
-                <td className="p-3">{row.studentFullName}</td>
-                <td className="p-3">{row.admissionName}</td>
-                <td className="p-3">{row.cycleName}</td>
-                <td className="p-3">{row.careerName}</td>
-                <td className="p-3">{row.goodAnswers ?? "-"}</td>
-                <td className="p-3">{row.wrongAnswers ?? "-"}</td>
-                <td className="p-3">{row.totalScore ?? "-"}</td>
-                <td className="p-3">S/ {Number(row.amountPaid).toFixed(2)}</td>
-                <td className="p-3">{row.typePaid}</td>
-                <td className="p-3">{row.statusPaid}</td>
-              </tr>
+              <Fragment key={row.examId}>
+                <tr className="border-b">
+                  <td className="p-3">
+                    <div className="font-medium">{row.examTitle}</div>
+                    <div className="text-xs text-gray-500">{row.examType}</div>
+                  </td>
+                  <td className="p-3">{row.modality}</td>
+                  <td className="p-3">{row.admissionName}</td>
+                  <td className="p-3">{row.cycleName}</td>
+                  <td className="p-3">{row.studentsCount}</td>
+                  <td className="p-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => toggleExpanded(row.examId)}
+                    >
+                      {expandedId === row.examId ? "Ocultar" : "Ver alumnos"}
+                    </Button>
+                  </td>
+                </tr>
+
+                {expandedId === row.examId && (
+                  <tr>
+                    <td colSpan={6} className="bg-slate-50 p-4">
+                      <div className="font-semibold mb-3">
+                        Alumnos asignados al examen
+                      </div>
+
+                      <div className="overflow-x-auto border rounded-lg bg-white">
+                        <table className="min-w-full text-sm">
+                          <thead>
+                            <tr className="border-b bg-white">
+                              <th className="p-3 text-left">Alumno</th>
+                              <th className="p-3 text-left">Carrera</th>
+                              <th className="p-3 text-left">Buenas</th>
+                              <th className="p-3 text-left">Malas</th>
+                              <th className="p-3 text-left">Puntaje</th>
+                              <th className="p-3 text-left">Pagado</th>
+                              <th className="p-3 text-left">Método</th>
+                              <th className="p-3 text-left">Estado pago</th>
+                            </tr>
+                          </thead>
+
+                          <tbody>
+                            {row.students.map((student) => (
+                              <tr key={student.detailId} className="border-b">
+                                <td className="p-3">{student.studentFullName}</td>
+                                <td className="p-3">{student.careerName}</td>
+                                <td className="p-3">{student.goodAnswers ?? "-"}</td>
+                                <td className="p-3">{student.wrongAnswers ?? "-"}</td>
+                                <td className="p-3">{student.totalScore ?? "-"}</td>
+                                <td className="p-3">
+                                  S/ {Number(student.amountPaid || 0).toFixed(2)}
+                                </td>
+                                <td className="p-3">{student.typePaid}</td>
+                                <td className="p-3">{student.statusPaid}</td>
+                              </tr>
+                            ))}
+
+                            {row.students.length === 0 && (
+                              <tr>
+                                <td
+                                  colSpan={8}
+                                  className="p-4 text-center text-gray-500"
+                                >
+                                  No hay alumnos asignados
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
             ))}
 
-            {!loading && (!report || report.data.length === 0) && (
+            {loading && (
               <tr>
-                <td colSpan={13} className="p-4 text-center text-gray-500">
-                  No hay resultados
+                <td colSpan={6} className="p-4 text-center text-gray-500">
+                  Cargando reporte...
                 </td>
               </tr>
             )}
 
-            {loading && (
+            {!loading && (!report || report.data.length === 0) && (
               <tr>
-                <td colSpan={13} className="p-4 text-center text-gray-500">
-                  Cargando reporte...
+                <td colSpan={6} className="p-4 text-center text-gray-500">
+                  No hay resultados
                 </td>
               </tr>
             )}
@@ -382,15 +410,6 @@ export default function ExamReportsPage() {
         lastPage={report?.meta.lastPage || 1}
         onPageChange={(page) => setFilters((prev) => ({ ...prev, page }))}
       />
-    </div>
-  );
-}
-
-function SummaryCard({ title, value }: { title: string; value: string | number }) {
-  return (
-    <div className="rounded-lg border p-4">
-      <div className="text-sm text-gray-500">{title}</div>
-      <div className="text-2xl font-bold">{value}</div>
     </div>
   );
 }

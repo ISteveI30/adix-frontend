@@ -4,15 +4,8 @@ export type ReportMeta = {
   lastPage: number;
 };
 
-export type PaymentReportRow = {
+export type PaymentReceiptRow = {
   id: string;
-  codeStudent: string;
-  studentFullName: string;
-  admissionName: string;
-  cycleName: string;
-  areaName: string;
-  careerName: string;
-  shift: string;
   concept: string;
   totalAmount: number;
   amountPaid: number;
@@ -21,70 +14,95 @@ export type PaymentReportRow = {
   status: string;
 };
 
+export type PaymentReportRow = {
+  enrollmentId: string;
+  codeStudent: string;
+  studentFullName: string;
+  dni: string;
+  admissionName: string;
+  cycleName: string;
+  areaName: string;
+  careerName: string;
+  totalAmount: number;
+  totalPaid: number;
+  totalPending: number;
+  status: string;
+  receipts: PaymentReceiptRow[];
+};
+
 export type PaymentReportResponse = {
   summary: {
     totalRows: number;
     totalAmount: number;
     totalPaid: number;
     totalPending: number;
+    pendingStudents: number;
+    paidStudents: number;
   };
   data: PaymentReportRow[];
   meta: ReportMeta;
 };
 
-export type AttendanceReportRow = {
+export type AttendanceRecordRow = {
   id: string;
-  codeStudent: string;
-  studentFullName: string;
-  admissionName: string;
-  cycleName: string;
-  areaName: string;
-  careerName: string;
-  shift: string;
   date: string;
   entryTime: string | null;
   status: string;
   notes: string;
 };
 
+export type AttendanceReportRow = {
+  groupId: string;
+  studentId: string;
+  enrollmentId: string;
+  codeStudent: string;
+  studentFullName: string;
+  dni: string;
+  admissionName: string;
+  cycleName: string;
+  areaName: string;
+  careerName: string;
+  shift: string;
+  attendanceCount: number;
+  tardinessCount: number;
+  absenceCount: number;
+  records: AttendanceRecordRow[];
+};
+
 export type AttendanceReportResponse = {
   summary: {
     totalRows: number;
-    asistio: number;
-    tardanza: number;
-    falta: number;
-    justificadas: number;
   };
   data: AttendanceReportRow[];
   meta: ReportMeta;
 };
 
-export type ExamReportRow = {
-  id: string;
-  examTitle: string;
-  examType: string;
-  modality: string;
-  admissionName: string;
-  cycleName: string;
-  areaName: string;
-  careerName: string;
-  participantType: string;
+export type ExamReportStudentRow = {
+  detailId: string;
   studentFullName: string;
+  careerName: string;
   goodAnswers: number | null;
   wrongAnswers: number | null;
   totalScore: number | null;
   amountPaid: number;
   typePaid: string;
   statusPaid: string;
-  registered: string;
+};
+
+export type ExamReportRow = {
+  examId: string;
+  examTitle: string;
+  examType: string;
+  modality: string;
+  admissionName: string;
+  cycleName: string;
+  studentsCount: number;
+  students: ExamReportStudentRow[];
 };
 
 export type ExamReportResponse = {
   summary: {
     totalRows: number;
-    totalAmountPaid: number;
-    averageScore: number;
-    totalExams: number;
   };
   data: ExamReportRow[];
   meta: ReportMeta;
@@ -103,19 +121,12 @@ export type ReportFilterBase = {
 };
 
 export type PaymentReportFilters = ReportFilterBase & {
-  shift?: string;
   status?: string;
-  concept?: string;
 };
 
-export type AttendanceReportFilters = ReportFilterBase & {
-  shift?: string;
-  status?: string;
-};
+export type AttendanceReportFilters = ReportFilterBase;
 
 export type ExamReportFilters = ReportFilterBase & {
   type?: string;
-  modality?: string;
-  examId?: string;
-  statusPaid?: string;
+  examName?: string;
 };
